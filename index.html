@@ -1201,16 +1201,21 @@
         // 方案页面的列表渲染
         function renderRecipePageList() {
             const list = document.getElementById('recipePageList');
+            const isDefault = (id) => DEFAULT_RECIPES.find(d => d.id === id);
             list.innerHTML = recipes.map(r => `
                 <div class="recipe-item ${currentRecipe && currentRecipe.id === r.id ? 'selected' : ''}" onclick="selectRecipeFromPage('${r.id}')">
-                    <div class="recipe-item-name">${r.name}</div>
-                    <div class="recipe-item-info">粉水比 ${r.ratio} · ${r.stages.length}段注水</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div class="recipe-item-name">${r.name}</div>
+                            <div class="recipe-item-info">粉水比 ${r.ratio} · ${r.stages.length}段注水</div>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="recipe-item-btn" onclick="event.stopPropagation(); showRecipeEditor('${r.id}')">编辑</button>
+                            ${!isDefault(r.id) ? `<button class="recipe-item-btn" style="color: #f87171; border-color: #f87171;" onclick="event.stopPropagation(); deleteRecipeDirect('${r.id}')">删除</button>` : ''}
+                        </div>
+                    </div>
                     <div class="recipe-item-stages">
                         ${r.stages.map(s => `<span class="recipe-item-stage">${s.multiplier}倍</span>`).join('')}
-                    </div>
-                    <div class="recipe-item-actions">
-                        <button class="recipe-item-btn primary" onclick="event.stopPropagation(); selectRecipeFromPage('${r.id}')">选用</button>
-                        <button class="recipe-item-btn" onclick="event.stopPropagation(); showRecipeEditor('${r.id}')">编辑</button>
                     </div>
                 </div>
             `).join('');
@@ -1340,19 +1345,22 @@
 
         function deleteRecipe() {
             if (!editingRecipeId) return;
+            deleteRecipeDirect(editingRecipeId);
+            closeEditor();
+        }
+
+        function deleteRecipeDirect(id) {
             if (!confirm('确定删除此方案？')) return;
 
-            recipes = recipes.filter(r => r.id !== editingRecipeId);
-            if (currentRecipe && currentRecipe.id === editingRecipeId) {
+            recipes = recipes.filter(r => r.id !== id);
+            if (currentRecipe && currentRecipe.id === id) {
                 if (recipes.length === 0) {
                     recipes = cloneDefaults();
                 }
                 selectRecipe(recipes[0]);
             }
             saveRecipes();
-            closeEditor();
             renderRecipePageList();
-            switchPage('recipe');
         }
 
         // ==================== 蓝牙连接 ====================
