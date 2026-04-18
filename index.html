@@ -1094,6 +1094,15 @@
             }
         ];
 
+        function cloneDefaults() {
+            try {
+                if (typeof structuredClone === 'function') {
+                    return structuredClone(DEFAULT_RECIPES);
+                }
+            } catch (e) {}
+            return JSON.parse(JSON.stringify(DEFAULT_RECIPES));
+        }
+
         // ==================== DOM 元素 ====================
         const weightEl = document.getElementById('weight');
         const flowEl = document.getElementById('flowRate');
@@ -1162,6 +1171,7 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
+                    if (!Array.isArray(parsed)) throw new Error('Invalid recipe format');
                     // 验证方案格式是否正确（检查是否有multiplier字段）
                     const valid = parsed.every(r =>
                         r.stages && r.stages.every(s => typeof s.multiplier === 'number')
@@ -1171,16 +1181,16 @@
                     } else {
                         // 格式不正确，使用默认方案
                         localStorage.removeItem('brewRecipes');
-                        recipes = [...DEFAULT_RECIPES];
+                        recipes = cloneDefaults();
                         saveRecipes();
                     }
                 } catch (e) {
                     localStorage.removeItem('brewRecipes');
-                    recipes = [...DEFAULT_RECIPES];
+                    recipes = cloneDefaults();
                     saveRecipes();
                 }
             } else {
-                recipes = [...DEFAULT_RECIPES];
+                recipes = cloneDefaults();
                 saveRecipes();
             }
         }
@@ -1345,6 +1355,14 @@
                 alert('请输入方案名称');
                 return;
             }
+            if (!stages.length) {
+                alert('请至少保留一个注水阶段');
+                return;
+            }
+            if (coffeeWeight <= 0 || stages.some(s => s.multiplier <= 0 || s.targetFlow <= 0 || s.stopEarly < 0)) {
+                alert('请填写有效的方案参数（必须大于 0）');
+                return;
+            }
 
             if (editingRecipeId) {
                 const index = recipes.findIndex(r => r.id === editingRecipeId);
@@ -1372,6 +1390,12 @@
             if (!confirm('确定删除此方案？')) return;
 
             recipes = recipes.filter(r => r.id !== editingRecipeId);
+            if (currentRecipe && currentRecipe.id === editingRecipeId) {
+                if (recipes.length === 0) {
+                    recipes = cloneDefaults();
+                }
+                selectRecipe(recipes[0]);
+            }
             saveRecipes();
             closeEditor();
             renderRecipePageList();
@@ -1424,7 +1448,7 @@
 
             } catch (e) {
                 statusDot.classList.remove('connecting');
-                deviceName.textContent = '连接失败: ' + e.message;
+                deviceName.textContent = '连接失败: ' + (e && e.message ? e.message : '未知错误');
                 console.error(e);
             }
         }
@@ -1437,6 +1461,12 @@
 
         function onDisconnected() {
             connected = false;
+            if (dataChar) dataChar.removeEventListener('characteristicvaluechanged', onData);
+            if (device) device.removeEventListener('gattserverdisconnected', onDisconnected);
+            dataChar = null;
+            ctrlChar = null;
+            server = null;
+            device = null;
             statusDot.classList.remove('connected');
             deviceName.textContent = '未连接';
             connectBtn.textContent = '连接电子秤';
@@ -1460,7 +1490,7 @@
                 if (lastTime > 0 && isRecording) {
                     const dt = (now - lastTime) / 1000;
                     if (dt > 0) {
-                        flow = Math.abs((weight - lastWeight) / dt);
+                        flow = Math.max(0, (weight - lastWeight) / dt);
                         updateFlowStatus(flow);
                     }
                 }
@@ -1968,8 +1998,16 @@
 
         function resetBrew() {
             stopRecord();
+            stopFlowBeep();
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            countdown = 0;
             weightData = [];
             smoothFlow = 0;
+            lastWeight = 0;
+            lastTime = 0;
             maxRecordedWeight = 0;
             lowWeightCount = 0;
             finalWaterWeight = 0;
@@ -1980,6 +2018,8 @@
             flowEl.textContent = '0.0';
             flowStatus.textContent = '';
             flowStatus.className = 'flow-status';
+            lastFlowStatus = null;
+            currentBeepType = null;
             drawChart();
         }
 
@@ -2110,12 +2150,13 @@
 
         // ==================== 历史 ====================
         function saveHistory() {
+            const finalWeight = Math.max(finalWaterWeight, maxRecordedWeight, currentWeight, 0);
             const record = {
                 id: Date.now(),
                 date: new Date().toISOString(),
                 recipe: currentRecipe ? currentRecipe.name : '',
                 coffeeWeight,
-                maxWeight: maxRecordedWeight,
+                maxWeight: finalWeight,
                 duration: weightData.length > 0 ? weightData[weightData.length - 1].time : 0,
                 data: [...weightData] // 保存完整数据用于查看详情
             };
@@ -2139,9 +2180,9 @@
                         <span class="history-time">${formatHistoryTime(r.date)}</span>
                     </div>
                     <div class="history-summary">
-                        <span>粉重 <span class="value">${r.coffeeWeight.toFixed(1)}g</span></span>
-                        <span>注水 <span class="value">${r.maxWeight.toFixed(0)}g</span></span>
-                        <span>时长 <span class="value">${formatDuration(r.duration)}</span></span>
+                        <span>粉重 <span class="value">${(Number(r.coffeeWeight) || 0).toFixed(1)}g</span></span>
+                        <span>注水 <span class="value">${(Number(r.maxWeight) || 0).toFixed(0)}g</span></span>
+                        <span>时长 <span class="value">${formatDuration(Number(r.duration) || 0)}</span></span>
                     </div>
                 </div>
             `).join('');
@@ -2181,15 +2222,15 @@
             document.getElementById('historyDetailStats').innerHTML = `
                 <div class="detail-stat">
                     <div class="detail-stat-label">咖啡粉重</div>
-                    <div class="detail-stat-value green">${record.coffeeWeight.toFixed(1)}g</div>
+                    <div class="detail-stat-value green">${(Number(record.coffeeWeight) || 0).toFixed(1)}g</div>
                 </div>
                 <div class="detail-stat">
                     <div class="detail-stat-label">总注水量</div>
-                    <div class="detail-stat-value">${record.maxWeight.toFixed(1)}g</div>
+                    <div class="detail-stat-value">${(Number(record.maxWeight) || 0).toFixed(1)}g</div>
                 </div>
                 <div class="detail-stat">
                     <div class="detail-stat-label">冲煮时长</div>
-                    <div class="detail-stat-value">${formatDuration(record.duration)}</div>
+                    <div class="detail-stat-value">${formatDuration(Number(record.duration) || 0)}</div>
                 </div>
                 <div class="detail-stat">
                     <div class="detail-stat-label">平均流速</div>
