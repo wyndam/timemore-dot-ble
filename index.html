@@ -648,39 +648,6 @@
             padding-bottom: 70px;
         }
 
-        .export-options {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .export-btn {
-            padding: 14px;
-            border-radius: 10px;
-            border: 1px solid #333;
-            background: #1a1a1a;
-            color: #fff;
-            font-size: 14px;
-            text-align: left;
-            cursor: pointer;
-        }
-
-        .export-btn .desc {
-            font-size: 11px;
-            color: #666;
-            margin-top: 2px;
-        }
-
-        .history-section {
-            margin-top: 20px;
-        }
-
-        .history-title {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 10px;
-        }
-
         .history-list {
             display: flex;
             flex-direction: column;
@@ -1001,6 +968,10 @@
     </div>
 
     <script>
+        // ==================== 调试配置 ====================
+        const DEBUG = false;
+        const log = (...args) => { if (DEBUG) console.log(...args); };
+
         // ==================== 蓝牙配置 ====================
         const SERVICE_UUID = 0xFFF0;
         const DATA_CHAR_UUID = 0xFFF1;
@@ -1255,26 +1226,6 @@
             switchPage('history');
         }
 
-        function showRecipes() {
-            switchPage('recipe');
-        }
-
-        function closeRecipes() {
-            switchPage('brew');
-        }
-
-        function renderRecipeList() {
-            renderRecipePageList();
-        }
-
-        function selectRecipeAndClose(id) {
-            const recipe = recipes.find(r => r.id === id);
-            if (recipe) {
-                selectRecipe(recipe);
-                switchPage('brew');
-            }
-        }
-
         function showRecipeEditor(id) {
             editingRecipeId = id;
             const recipe = id ? recipes.find(r => r.id === id) : null;
@@ -1304,7 +1255,7 @@
                     <div class="stage-config-row">
                         <div class="stage-config-field">
                             <label>粉重倍数</label>
-                            <input type="number" step="0.5" value="${s.multiplier}" id="stageMultiplier${i}" onchange="updateStageEditor()">
+                            <input type="number" step="0.5" value="${s.multiplier}" id="stageMultiplier${i}">
                         </div>
                         <div class="stage-config-field">
                             <label>目标流速 g/s</label>
@@ -1515,8 +1466,9 @@
                         maxRecordedWeight = weight;
                     }
 
-                    // 检测滤杯被拿走
-                    if (maxRecordedWeight > 50 && maxRecordedWeight - weight > 50) {
+                    // 检测滤杯被拿走（阈值与粉量关联）
+                    const dropThreshold = Math.max(50, coffeeWeight * 0.3);
+                    if (maxRecordedWeight > dropThreshold && maxRecordedWeight - weight > dropThreshold) {
                         lowWeightCount++;
                         if (lowWeightCount >= 3) {
                             finalWaterWeight = maxRecordedWeight;
@@ -1551,7 +1503,7 @@
                         const weightDrop = lastData.weight - weight;
                         if (weightDrop > 5) {
                             // 忽略这个异常数据点，但更新时间避免流速计算失真
-                            console.log('忽略异常数据:', weight.toFixed(1), 'g, 上一个:', lastData.weight.toFixed(1), 'g');
+                            log('忽略异常数据:', weight.toFixed(1), 'g, 上一个:', lastData.weight.toFixed(1), 'g');
                             lastTime = now;
                             return;
                         }
@@ -1808,10 +1760,10 @@
             if (weight < minThreshold) return;
 
             // 调试信息
-            console.log(`阶段检测: 粉重=${coffeeWeight}g, 目标=${targetWeight.toFixed(1)}g, 当前=${weight.toFixed(1)}g, 提前=${stage.stopEarly}g, 已完成=${stageCompletedFlags[currentStageIndex]}`);
+            log(`阶段检测: 粉重=${coffeeWeight}g, 目标=${targetWeight.toFixed(1)}g, 当前=${weight.toFixed(1)}g, 提前=${stage.stopEarly}g, 已完成=${stageCompletedFlags[currentStageIndex]}`);
 
             if (!stageCompletedFlags[currentStageIndex] && weight >= targetWeight - stage.stopEarly) {
-                console.log('>>> 触发喊停！ <<<');
+                log('>>> 触发喊停！ <<<');
                 stageCompletedFlags[currentStageIndex] = true;
                 beep(800, 200);
                 speak('停');
@@ -1822,7 +1774,7 @@
             // 检测进入下一阶段
             if (stageCompletedFlags[currentStageIndex] && currentStageIndex < currentRecipe.stages.length - 1) {
                 if (weight > targetWeight + 5) {
-                    console.log(`>>> 切换到阶段 ${currentStageIndex + 2} <<<`);
+                    log(`>>> 切换到阶段 ${currentStageIndex + 2} <<<`);
                     currentStageIndex++;
                     updateStageUI();
                     updateUI();
@@ -1904,10 +1856,8 @@
 
                 case STATES.ADD_POWDER:
                     coffeeWeight = currentWeight;
-                    console.log('记录粉重:', coffeeWeight, 'g');
-                    // 先改变状态，避免sendTare重置coffeeWeight
-                    currentState = STATES.COUNTDOWN;
-                    await sendTare();
+                    log('记录粉重:', coffeeWeight, 'g');
+                    await sendTare({ skipResetCoffeeWeight: true });
                     currentWeight = 0;
                     weightEl.textContent = '0.0';
                     await delay(500);
@@ -1961,7 +1911,7 @@
             lowWeightCount = 0;
             currentWeight = 0;
 
-            console.log('开始冲煮:', {
+            log('开始冲煮:', {
                 recipe: currentRecipe.name,
                 coffeeWeight: coffeeWeight,
                 stages: currentRecipe.stages.map(s => ({
@@ -2023,11 +1973,12 @@
             drawChart();
         }
 
-        async function sendTare() {
+        async function sendTare(options = {}) {
+            const { skipResetCoffeeWeight } = options;
             if (!ctrlChar) return;
             try {
                 await ctrlChar.writeValueWithoutResponse(TARE_CMD);
-                if (currentState === STATES.ADD_POWDER) {
+                if (!skipResetCoffeeWeight && currentState === STATES.ADD_POWDER) {
                     coffeeWeight = 0;
                     currentWeight = 0;
                     weightEl.textContent = '0.0';
@@ -2055,11 +2006,6 @@
             const m = Math.floor(elapsed / 60);
             const s = elapsed % 60;
             timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function parseRatio(ratioStr) {
-            const match = ratioStr.match(/1:(\d+\.?\d*)/);
-            return match ? parseFloat(match[1]) : 15;
         }
 
         function delay(ms) {
