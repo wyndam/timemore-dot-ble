@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIMEMORE DOT 电子秤</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .weight-display {
+            background: #000;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        .weight-value {
+            font-size: 72px;
+            font-weight: 200;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            line-height: 1;
+        }
+        .weight-unit {
+            color: #666;
+            font-size: 24px;
+            margin-left: 5px;
+        }
+        .timer {
+            color: #ffaa00;
+            font-size: 28px;
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+        }
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%) !important;
+        }
+        .status {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 20px;
+            min-height: 20px;
+        }
+        .status.connected {
+            color: #00ff88;
+        }
+        .status.error {
+            color: #ff4444;
+        }
+        button {
+            background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 15px 40px;
+            font-size: 18px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 255, 136, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background: #444;
+            color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .control-btn {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 14px;
+        }
+        .tare-btn {
+            background: linear-gradient(135deg, #4488ff 0%, #2266dd 100%);
+            color: #fff;
+        }
+        .tare-btn:hover {
+            box-shadow: 0 5px 20px rgba(68, 136, 255, 0.3);
+        }
+        .disconnect-btn {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+        }
+        .disconnect-btn:hover {
+            box-shadow: 0 5px 20px rgba(255, 68, 68, 0.3);
+        }
+        .debug {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .debug-title {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        .debug-log {
+            background: #000;
+            border-radius: 8px;
+            padding: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #888;
+        }
+        .debug-log .raw {
+            color: #ffaa00;
+        }
+        .debug-log .parsed {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>TIMEMORE DOT</h1>
+        <p class="subtitle">蓝牙电子秤</p>
+
+        <div class="weight-display">
+            <span class="weight-value" id="weight">--.-</span>
+            <span class="weight-unit">g</span>
+            <div class="timer" id="timer">00:00</div>
+        </div>
+
+        <p class="status" id="status">未连接</p>
+
+        <button id="connectBtn" onclick="connect()">连接设备</button>
+
+        <div id="controlPanel" style="display: none;">
+            <div class="control-buttons">
+                <button class="control-btn tare-btn" onclick="sendTare()">去皮</button>
+                <button class="control-btn record-btn" id="recordBtn" onclick="toggleRecord()">开始记录</button>
+            </div>
+            <button class="disconnect-btn" style="width: 100%; margin-top: 10px;" onclick="disconnect()">断开连接</button>
+        </div>
+
+        <div id="chartContainer" style="display: none; margin-top: 20px;">
+            <canvas id="weightChart" style="background: #000; border-radius: 10px;"></canvas>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="control-btn" style="flex: 1; background: #333; color: #fff;" onclick="clearChart()">清除曲线</button>
+            </div>
+        </div>
+
+        <div class="debug">
+            <p class="debug-title">调试日志</p>
+            <div class="debug-log" id="debugLog"></div>
+        </div>
+    </div>
+
+    <script>
+        // 设备配置
+        const DEVICE_NAME = 'TIMEMORE_DOT';
+        const SERVICE_UUID = 0xFFF0;
+        const DATA_CHAR_UUID = 0xFFF1;  // 重量数据 (NOTIFY)
+        const CTRL_CHAR_UUID = 0xFFF2;  // 控制通道 (WRITE)
+
+        // Unknown Service (可能是去皮服务)
+        const UNKNOWN_SERVICE_UUID = '5833ff01-9b8b-5191-6142-22a4536ef123';
+        const UNKNOWN_CTRL_UUID = '5833ff02-9b8b-5191-6142-22a4536ef123';
+        const UNKNOWN_DATA_UUID = '5833ff03-9b8b-5191-6142-22a4536ef123';
+
+        let device = null;
+        let server = null;
+        let service = null;
+        let dataChar = null;
+        let ctrlChar = null;
+        let unknownCtrlChar = null;
+        let unknownDataChar = null;
+
+        // 记录相关变量
+        let isRecording = false;
+        let recordStartTime = 0;
+        let recordInterval = null;
+        let weightData = [];  // [{time: 秒, weight: 克}, ...]
+        let currentWeight = 0;
+
+        const weightEl = document.getElementById('weight');
+        const statusEl = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+        const controlPanel = document.getElementById('controlPanel');
+        const debugLog = document.getElementById('debugLog');
+        const timerEl = document.getElementById('timer');
+        const recordBtn = document.getElementById('recordBtn');
+        const chartContainer = document.getElementById('chartContainer');
+        const canvas = document.getElementById('weightChart');
+        const ctx = canvas.getContext('2d');
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = `[${time}] ${msg}`;
+            debugLog.appendChild(line);
+            debugLog.scrollTop = debugLog.scrollHeight;
+
+            // 只保留最新 20 条日志
+            while (debugLog.children.length > 20) {
+                debugLog.removeChild(debugLog.firstChild);
+            }
+        }
+
+        function setStatus(msg, type = '') {
+            statusEl.textContent = msg;
+            statusEl.className = 'status ' + type;
+        }
+
+        async function connect() {
+            try {
+                log('正在扫描设备...');
+                setStatus('正在扫描...');
+
+                // 请求设备 (不设过滤器，显示所有设备)
+                device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [SERVICE_UUID]
+                });
+
+                log(`找到设备: ${device.name}`);
+                setStatus('正在连接...');
+
+                device.addEventListener('gattserverdisconnected', onDisconnected);
+
+                // 连接 GATT
+                server = await device.gatt.connect();
+                log('GATT 已连接');
+
+                // 获取服务
+                service = await server.getPrimaryService(SERVICE_UUID);
+                log('服务已获取');
+
+                // 获取数据特征值
+                dataChar = await service.getCharacteristic(DATA_CHAR_UUID);
+                log('数据特征值已获取');
+
+                // 获取控制特征值
+                ctrlChar = await service.getCharacteristic(CTRL_CHAR_UUID);
+                log('控制特征值已获取');
+
+                // 尝试获取 Unknown Service 的控制通道
+                try {
+                    const unknownService = await server.getPrimaryService(UNKNOWN_SERVICE_UUID);
+                    unknownCtrlChar = await unknownService.getCharacteristic(UNKNOWN_CTRL_UUID);
+                    log('Unknown 控制通道已获取');
+
+                    // 也获取数据通道并启用通知
+                    unknownDataChar = await unknownService.getCharacteristic(UNKNOWN_DATA_UUID);
+                    await unknownDataChar.startNotifications();
+                    unknownDataChar.addEventListener('characteristicvaluechanged', onData);
+                    log('Unknown 数据通知已启用');
+                } catch (e) {
+                    log('Unknown 服务不可用: ' + e.message);
+                }
+
+                // 启用通知
+                await dataChar.startNotifications();
+                dataChar.addEventListener('characteristicvaluechanged', onData);
+                log('通知已启用');
+
+                setStatus('已连接', 'connected');
+                connectBtn.style.display = 'none';
+                controlPanel.style.display = 'block';
+
+            } catch (error) {
+                log(`错误: ${error.message}`, 'error');
+                setStatus('连接失败', 'error');
+            }
+        }
+
+        function onDisconnected() {
+            log('设备已断开');
+            setStatus('未连接');
+            weightEl.textContent = '--.-';
+            timerEl.textContent = '00:00';
+            connectBtn.style.display = 'block';
+            controlPanel.style.display = 'none';
+
+            // 停止记录
+            if (isRecording) {
+                stopRecord();
+            }
+            chartContainer.style.display = 'none';
+        }
+
+        async function disconnect() {
+            if (device && device.gatt.connected) {
+                device.gatt.disconnect();
+            }
+        }
+
+        // 计算 CRC8 校验
+        function calculateCRC(data) {
+            let crc = 0;
+            for (let i = 0; i < data.length; i++) {
+                crc ^= data[i] & 0xFF;
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 1) !== 0) {
+                        crc = (crc >> 1) ^ 0x0FC1; // 40961 = 0x0FC1
+                    } else {
+                        crc = crc >> 1;
+                    }
+                }
+            }
+            return crc;
+        }
+
+        // 构建带 CRC 的命令
+        function buildCommand(cmdType, data) {
+            const dataLen = data ? data.length : 0;
+            const buf = new Uint8Array(dataLen + 8);
+
+            // 帧头: A5 5A 03
+            buf[0] = 0xA5;
+            buf[1] = 0x5A;
+            buf[2] = 0x03;
+
+            // 命令类型
+            buf[3] = cmdType;
+
+            // 数据长度 (小端序)
+            buf[4] = dataLen & 0xFF;
+            buf[5] = (dataLen >> 8) & 0xFF;
+
+            // 数据
+            if (data && dataLen > 0) {
+                for (let i = 0; i < dataLen; i++) {
+                    buf[6 + i] = data[i];
+                }
+            }
+
+            // CRC 校验 (小端序)
+            const crc = calculateCRC(buf.slice(0, 6 + dataLen));
+            buf[6 + dataLen] = crc & 0xFF;
+            buf[7 + dataLen] = (crc >> 8) & 0xFF;
+
+            return buf;
+        }
+
+        // 发送自定义命令
+        async function sendCommand(hexStr) {
+            if (!ctrlChar) {
+                log('控制通道未连接', 'error');
+                return;
+            }
+
+            try {
+                // 将十六进制字符串转换为字节数组
+                const bytes = [];
+                for (let i = 0; i < hexStr.length; i += 2) {
+                    bytes.push(parseInt(hexStr.substr(i, 2), 16));
+                }
+                const cmd = new Uint8Array(bytes);
+
+                await ctrlChar.writeValueWithoutResponse(cmd);
+                log(`发送命令: ${hexStr}`, 'parsed');
+            } catch (e) {
+                log(`发送失败: ${e.message}`, 'error');
+            }
+        }
+
+        // 发送去皮命令
+        async function sendTare() {
+            // 去皮命令: A5 5A 03 0D 00 02 00 00 00 71
+            sendCommand('A55A030D000200000071');
+        }
+
+        // 切换记录状态
+        function toggleRecord() {
+            if (isRecording) {
+                stopRecord();
+            } else {
+                startRecord();
+            }
+        }
+
+        // 开始记录
+        function startRecord() {
+            isRecording = true;
+            recordStartTime = Date.now();
+            weightData = [];
+            recordBtn.textContent = '停止记录';
+            recordBtn.classList.add('recording');
+            chartContainer.style.display = 'block';
+
+            // 设置 canvas 尺寸
+            canvas.width = canvas.parentElement.clientWidth - 20;
+            canvas.height = 200;
+
+            // 开始计时
+            recordInterval = setInterval(() => {
+                updateTimer();
+                recordWeight();
+                drawChart();
+            }, 100);  // 每 100ms 更新一次
+        }
+
+        // 停止记录
+        function stopRecord() {
+            isRecording = false;
+            recordBtn.textContent = '开始记录';
+            recordBtn.classList.remove('recording');
+            clearInterval(recordInterval);
+        }
+
+        // 更新计时器显示
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
+            const minutes = Math.floor(elapsed / 60);
+            const seconds = elapsed % 60;
+            timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // 记录重量数据
+        function recordWeight() {
+            const elapsed = (Date.now() - recordStartTime) / 1000;
+            weightData.push({
+                time: elapsed,
+                weight: currentWeight
+            });
+
+            // 限制数据点数量，最多 600 个点（1 分钟）
+            if (weightData.length > 600) {
+                weightData.shift();
+            }
+        }
+
+        // 清除曲线
+        function clearChart() {
+            weightData = [];
+            recordStartTime = Date.now();
+            drawChart();
+        }
+
+        // 绘制曲线
+        function drawChart() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+
+            // 清空画布
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, width, height);
+
+            if (weightData.length < 2) {
+                return;
+            }
+
+            // 计算数据范围
+            const maxTime = Math.max(...weightData.map(d => d.time), 60);
+            const maxWeight = Math.max(...weightData.map(d => d.weight), 100);
+            const minWeight = Math.min(...weightData.map(d => d.weight), 0);
+            const weightRange = maxWeight - minWeight + 20;
+
+            // 绘制网格
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+
+            // 横向网格线（重量）
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (height - 2 * padding) * i / 5;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+
+                // 重量标签
+                const weightLabel = (maxWeight - (weightRange * i / 5) + 10).toFixed(0);
+                ctx.fillStyle = '#666';
+                ctx.font = '12px monospace';
+                ctx.textAlign = 'right';
+                ctx.fillText(weightLabel + 'g', padding - 5, y + 4);
+            }
+
+            // 纵向网格线（时间）
+            for (let i = 0; i <= 6; i++) {
+                const x = padding + (width - 2 * padding) * i / 6;
+                ctx.beginPath();
+                ctx.moveTo(x, padding);
+                ctx.lineTo(x, height - padding);
+                ctx.stroke();
+
+                // 时间标签
+                const timeLabel = Math.floor(maxTime * i / 6);
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText(timeLabel + 's', x, height - padding + 20);
+            }
+
+            // 绘制曲线
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+
+            for (let i = 0; i < weightData.length; i++) {
+                const d = weightData[i];
+                const x = padding + (d.time / maxTime) * (width - 2 * padding);
+                const y = padding + ((maxWeight - d.weight + 10) / weightRange) * (height - 2 * padding);
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+
+            // 绘制当前点
+            if (weightData.length > 0) {
+                const last = weightData[weightData.length - 1];
+                const x = padding + (last.time / maxTime) * (width - 2 * padding);
+                const y = padding + ((maxWeight - last.weight + 10) / weightRange) * (height - 2 * padding);
+
+                ctx.fillStyle = '#00ff88';
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function onData(event) {
+            const value = event.target.value;
+            const data = new Uint8Array(value.buffer);
+
+            // 转换为十六进制字符串
+            const hex = Array.from(data).map(b => b.toString(16).padStart(2, '0').toUpperCase()).join(' ');
+            log(`原始: ${hex}`, 'raw');
+
+            // 解析重量
+            // 协议: A5 5A 01 01 00 09 00 00 XX XX ...
+            // 重量在第 9-10 字节 (索引 8-9)，小端序，单位 0.1g
+            if (data[0] === 0xA5 && data[1] === 0x5A) {
+                // 读取原始重量值（无符号）
+                const weightRaw = (data[8] << 8) | data[9];
+
+                // 检查是否需要作为有符号整数处理
+                // 如果重量值很大（超过 30000），可能是负数
+                let weight;
+                if (weightRaw > 30000) {
+                    // 作为有符号 16 位整数处理
+                    const weightSigned = weightRaw - 65536;
+                    weight = weightSigned * 0.1;
+                } else {
+                    weight = weightRaw * 0.1;
+                }
+
+                currentWeight = weight;  // 保存当前重量
+                weightEl.textContent = weight.toFixed(1);
+                log(`重量: ${weight.toFixed(1)}g (raw: ${weightRaw})`, 'parsed');
+            }
+        }
+    </script>
+</body>
+</html>
