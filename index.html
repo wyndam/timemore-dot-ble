@@ -919,6 +919,7 @@
                     <canvas id="historyChart"></canvas>
                 </div>
             </div>
+            <button class="btn-delete" style="margin-top: 16px;" onclick="deleteHistoryRecord()">删除此记录</button>
         </div>
     </div>
 
@@ -1030,6 +1031,7 @@
 
         // 历史记录
         let history = JSON.parse(localStorage.getItem('brewHistory') || '[]');
+        let currentHistoryIndex = -1;
 
         // ==================== 默认方案 ====================
         const DEFAULT_RECIPES = [
@@ -2154,6 +2156,7 @@
         }
 
         function showHistoryDetail(index) {
+            currentHistoryIndex = index;
             const record = history[index];
             if (!record) return;
 
@@ -2193,6 +2196,16 @@
 
         function closeHistoryDetail() {
             document.getElementById('historyDetailModal').classList.remove('show');
+        }
+
+        function deleteHistoryRecord() {
+            if (currentHistoryIndex < 0 || currentHistoryIndex >= history.length) return;
+            if (!confirm('确定删除此记录？')) return;
+
+            history.splice(currentHistoryIndex, 1);
+            localStorage.setItem('brewHistory', JSON.stringify(history));
+            closeHistoryDetail();
+            renderHistory();
         }
 
         function drawHistoryChart(data) {
