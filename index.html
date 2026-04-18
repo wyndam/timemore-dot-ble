@@ -899,6 +899,7 @@
     <div class="page" id="historyPage">
         <div class="header">
             <span class="header-title">冲煮历史</span>
+            <button class="icon-btn" onclick="clearAllHistory()" title="清空历史">🗑</button>
         </div>
         <div class="export-page-content">
             <div class="history-list" id="historyList"></div>
@@ -2213,6 +2214,15 @@
             history.splice(currentHistoryIndex, 1);
             localStorage.setItem('brewHistory', JSON.stringify(history));
             closeHistoryDetail();
+            renderHistory();
+        }
+
+        function clearAllHistory() {
+            if (history.length === 0) return;
+            if (!confirm('确定清空所有历史记录？')) return;
+
+            history = [];
+            localStorage.setItem('brewHistory', JSON.stringify(history));
             renderHistory();
         }
 
