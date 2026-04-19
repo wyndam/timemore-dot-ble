@@ -1,0 +1,29 @@
+.history-content {
+  flex: 1;
+  padding: 20rpx;
+  padding-bottom: 160rpx;
+}
+
+.history-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.history-time {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.history-summary {
+  display: flex;
+  gap: 32rpx;
+  font-size: 24rpx;
+  color: #888;
+}
+
+.history-summary .value {
+  color: #f59e0b;
+  font-weight: 500;
+}

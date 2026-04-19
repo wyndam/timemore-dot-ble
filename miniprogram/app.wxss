@@ -1,0 +1,595 @@
+/* ============ 全局样式 ============ */
+page {
+  background: #0d0d0d;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 容器 */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 顶部状态栏 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10rpx 24rpx;
+  background: #1a1a1a;
+  border-bottom: 1rpx solid #2a2a2a;
+  box-shadow: 0 1rpx 6rpx rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.header-actions {
+  display: flex;
+  gap: 16rpx;
+}
+
+/* 设备状态 */
+.device-status {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.status-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: #444;
+}
+
+.status-dot.connected {
+  background: #4ade80;
+  box-shadow: 0 0 16rpx #4ade80;
+}
+
+.status-dot.connecting {
+  background: #f59e0b;
+}
+
+.device-name {
+  font-size: 26rpx;
+  color: #888;
+}
+
+.state-badge {
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 16rpx;
+  background: #2a2a2a;
+  color: #666;
+}
+
+.state-badge.brewing {
+  background: #3a2a1a;
+  color: #f59e0b;
+}
+
+/* 图标按钮 */
+.icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #888;
+}
+
+.back-btn {
+  background: none;
+  color: #4ade80;
+  font-size: 28rpx;
+  padding: 8rpx 0;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 重量显示 */
+.weight-display {
+  text-align: center;
+  padding: 16rpx 0;
+}
+
+.weight-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.weight-value {
+  font-size: 112rpx;
+  font-weight: 200;
+  font-family: 'Courier New', monospace;
+  color: #fff;
+  line-height: 1;
+}
+
+.weight-value.negative {
+  color: #f87171;
+}
+
+.weight-value.small {
+  font-size: 84rpx;
+}
+
+.weight-unit {
+  font-size: 40rpx;
+  color: #666;
+}
+
+.weight-unit.small {
+  font-size: 32rpx;
+}
+
+.weight-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+
+/* 通用按钮 */
+.btn {
+  flex: 1;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  border: none;
+  font-size: 30rpx;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1;
+}
+
+.btn::after {
+  border: none;
+}
+
+.btn-tare {
+  background: #2a2a2a;
+  color: #888;
+}
+
+.btn-primary {
+  background: #4ade80;
+  color: #000;
+  font-weight: 600;
+}
+
+.btn-primary.amber {
+  background: #f59e0b;
+}
+
+.btn[disabled] {
+  opacity: 0.5;
+}
+
+/* 引导区 */
+.guide-section {
+  background: linear-gradient(135deg, #1a2a1a 0%, #1a1a1a 100%);
+  border: 1rpx solid #2a3a2a;
+  border-radius: 24rpx;
+  padding: 28rpx 32rpx;
+  margin-bottom: 20rpx;
+  text-align: center;
+}
+
+.guide-section.amber {
+  background: linear-gradient(135deg, #2a2a1a 0%, #1a1a1a 100%);
+  border-color: #3a3a2a;
+}
+
+.guide-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide-icon {
+  font-size: 36rpx;
+  margin-right: 12rpx;
+}
+
+.guide-text {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #4ade80;
+}
+
+.guide-text.amber {
+  color: #f59e0b;
+}
+
+.guide-sub {
+  font-size: 22rpx;
+  color: #666;
+  margin-top: 4rpx;
+}
+
+/* 操作按钮区 */
+.actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+/* 方案区 */
+.recipe-section {
+  background: #1a1a1a;
+  border: 1rpx solid #232323;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.recipe-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #4ade80;
+}
+
+.recipe-ratio {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.recipe-stages {
+  display: flex;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.stage-tag {
+  background: #2a2a2a;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  color: #888;
+}
+
+.stage-tag.active {
+  background: #1a3a1a;
+  color: #4ade80;
+}
+
+/* 进度条 */
+.brew-progress {
+  background: #1a1a1a;
+  border: 1rpx solid #232323;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin: 16rpx 0;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.progress-stage-label {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #4ade80;
+}
+
+.progress-target-label {
+  font-size: 26rpx;
+  color: #888;
+}
+
+.progress-track {
+  position: relative;
+  height: 16rpx;
+  background: #2a2a2a;
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.progress-bar-fill {
+  position: relative;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 8rpx;
+  transition: width 0.15s linear;
+}
+
+.progress-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2rpx;
+  background: rgba(255,255,255,0.24);
+}
+
+.progress-labels {
+  position: relative;
+  height: 36rpx;
+}
+
+.progress-label-item {
+  font-size: 20rpx;
+  color: #555;
+  position: absolute;
+  white-space: nowrap;
+}
+
+.progress-label-item.completed {
+  color: #4ade80;
+}
+
+.progress-label-item.active {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* 时间/流速指标 */
+.metrics {
+  display: flex;
+  justify-content: center;
+  gap: 72rpx;
+  margin: 16rpx 0;
+  padding: 12rpx 0;
+}
+
+.metric {
+  text-align: center;
+}
+
+.metric-label {
+  font-size: 22rpx;
+  color: #555;
+  margin-bottom: 4rpx;
+}
+
+.metric-value {
+  font-size: 44rpx;
+  font-family: 'Courier New', monospace;
+  color: #f59e0b;
+}
+
+.metric-unit {
+  font-size: 20rpx;
+  color: #555;
+}
+
+.flow-status {
+  font-size: 20rpx;
+  margin-top: 4rpx;
+  padding: 2rpx 12rpx;
+  border-radius: 12rpx;
+  display: inline-block;
+}
+
+.flow-status.low { background: #1a2a3a; color: #60a5fa; }
+.flow-status.normal { background: #1a3a1a; color: #4ade80; }
+.flow-status.high { background: #3a2a1a; color: #f59e0b; }
+.flow-status.danger { background: #3a1a1a; color: #f87171; }
+
+/* 曲线图 */
+.chart-container {
+  background: #1a1a1a;
+  border: 1rpx solid #232323;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  margin: 16rpx 0;
+}
+
+.chart-title {
+  font-size: 22rpx;
+  color: #555;
+  margin-bottom: 8rpx;
+}
+
+/* 完成面板 */
+.completed-panel {
+  background: linear-gradient(135deg, #141a14 0%, #161616 100%);
+  border: 1rpx solid #2a3a2a;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-top: 20rpx;
+}
+
+.completed-title {
+  color: #4ade80;
+  font-size: 36rpx;
+  font-weight: 700;
+  margin-bottom: 24rpx;
+  text-align: center;
+}
+
+.completed-metrics {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.completed-metric {
+  flex: 1;
+  background: #111;
+  border: 1rpx solid #222;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  text-align: center;
+}
+
+.completed-metric-label {
+  color: #888;
+  font-size: 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.completed-metric-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.completed-stage-item {
+  display: flex;
+  justify-content: space-between;
+  background: #111;
+  border: 1rpx solid #232323;
+  border-radius: 16rpx;
+  padding: 16rpx 20rpx;
+  color: #e5e5e5;
+  font-size: 26rpx;
+  margin-bottom: 12rpx;
+}
+
+/* 表单 */
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 24rpx;
+  color: #888;
+  margin-bottom: 8rpx;
+}
+
+.form-input {
+  width: 100%;
+  background: #0d0d0d;
+  border: 1rpx solid #333;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  color: #fff;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+/* 列表项 */
+.list-item {
+  background: #1a1a1a;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.list-item.selected {
+  border: 1rpx solid #4ade80;
+}
+
+.list-item-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #fff;
+  margin-bottom: 8rpx;
+}
+
+.list-item-info {
+  font-size: 22rpx;
+  color: #666;
+}
+
+/* 空状态 */
+.empty-state {
+  color: #555;
+  text-align: center;
+  padding: 80rpx;
+  font-size: 28rpx;
+}
+
+/* 连接栏 */
+.connect-bar {
+  padding: 24rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, #0d0d0d 80%, transparent);
+}
+
+.btn-connect {
+  width: 100%;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  border: none;
+  font-size: 30rpx;
+  font-weight: 600;
+  background: #2a2a2a;
+  color: #888;
+  text-align: center;
+  line-height: 1;
+}
+
+.btn-connect::after {
+  border: none;
+}
+
+.btn-connect.connected {
+  background: #1a1a1a;
+  color: #4ade80;
+  border: 1rpx solid #4ade80;
+}
+
+/* 删除按钮 */
+.btn-delete {
+  width: 100%;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  border: 1rpx solid #f87171;
+  background: transparent;
+  color: #f87171;
+  font-size: 30rpx;
+  text-align: center;
+  margin-top: 16rpx;
+  line-height: 1;
+}
+
+.btn-delete::after {
+  border: none;
+}
+
+/* 保存按钮 */
+.btn-save {
+  width: 100%;
+  padding: 28rpx;
+  border-radius: 20rpx;
+  border: none;
+  background: #4ade80;
+  color: #000;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 24rpx;
+  line-height: 1;
+}
+
+.btn-save::after {
+  border: none;
+}

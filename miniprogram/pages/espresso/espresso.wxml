@@ -1,0 +1,46 @@
+<view class="page-container">
+  <!-- 顶部状态栏 -->
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px; padding-right: {{headerRight}}px;">
+    <view class="header-left">
+      <view class="back-btn" bindtap="goBack">‹ 返回</view>
+    </view>
+    <text class="header-title" style="color: #f59e0b;">意式咖啡</text>
+    <view class="header-actions"></view>
+  </view>
+
+  <!-- 主内容区 -->
+  <view class="main espresso-main">
+    <view class="guide-section amber">
+      <view class="guide-row">
+        <text class="guide-icon">{{guideIcon}}</text>
+        <text class="guide-text amber">{{guideText}}</text>
+      </view>
+      <text class="guide-sub" wx:if="{{guideSub}}">{{guideSub}}</text>
+    </view>
+
+    <!-- 重量显示 -->
+    <view class="weight-display">
+      <view class="weight-row">
+        <text class="weight-value">{{espressoWeight}}</text>
+        <text class="weight-unit">g</text>
+      </view>
+      <view class="weight-status">
+        <text>{{weightStatusText}}</text>
+      </view>
+    </view>
+
+    <!-- 计时器 -->
+    <view class="espresso-timer-section" wx:if="{{showTimer}}">
+      <view class="espresso-timer">
+        <text class="espresso-timer-value">{{timerValue}}</text>
+        <text class="espresso-timer-unit">秒</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="actions" style="width: 100%;">
+      <button class="btn btn-tare" bindtap="onTare" disabled="{{tareBtnDisabled}}">去皮</button>
+      <button class="btn btn-primary amber" bindtap="onMainAction" disabled="{{mainBtnDisabled}}">{{mainBtnText}}</button>
+    </view>
+  </view>
+</view>

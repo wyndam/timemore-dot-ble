@@ -1,0 +1,72 @@
+.edit-content {
+  flex: 1;
+  padding: 20rpx;
+  padding-bottom: 160rpx;
+}
+
+.stage-config {
+  background: #0d0d0d;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.stage-config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.stage-config-title {
+  font-size: 26rpx;
+  color: #4ade80;
+}
+
+.stage-config-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.stage-config-field {
+  flex: 1;
+}
+
+.field-label {
+  font-size: 20rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.field-input {
+  width: 100%;
+  background: #1a1a1a;
+  border: 1rpx solid #333;
+  border-radius: 12rpx;
+  padding: 16rpx;
+  color: #fff;
+  font-size: 26rpx;
+  box-sizing: border-box;
+}
+
+.btn-add-stage {
+  width: 100%;
+  padding: 20rpx;
+  border-radius: 16rpx;
+  border: 1rpx dashed #333;
+  background: transparent;
+  color: #666;
+  font-size: 26rpx;
+  text-align: center;
+  margin-top: 16rpx;
+}
+
+.recipe-item-btn {
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #333;
+  background: #0d0d0d;
+  color: #888;
+  font-size: 22rpx;
+}

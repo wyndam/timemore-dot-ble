@@ -1337,6 +1337,13 @@
         let espressoInterval = null;
         let espressoStableWeight = 0;
         let espressoStableTime = 0;
+        let espressoLastChangeTime = 0; // 最后一次重量变化的时间（兼容旧字段）
+        // 稳定判定配置
+        const STABLE_THRESHOLD = 1; // 克，变化低于此视为稳定
+        const STABLE_CONFIRM_MS = 3000; // 毫秒，稳定需持续时长（3秒）
+        // 用于记录最后一次显著变化的时间与重量（稳定判定起点）
+        let espressoLastSignificantChangeTime = 0;
+        let espressoLastSignificantWeight = 0;
         let espressoFinalWeight = 0;
         let espressoFinalTime = 0;
         const ESPRESSO_PREINFUSION = 5;
@@ -2886,31 +2893,38 @@
                 } else {
                     clearInterval(espressoCountdownInterval);
                     espressoCountdownInterval = null;
-                    speak('开始');
+                    // 倒计时结束：先立即开启萃取（确保计时与称重并行启动），再播放提示音
                     startEspresso();
+                    speak('开始');
                 }
             }, 1000);
         }
 
         function startEspresso() {
             espressoState = ESPRESSO_STATES.BREWING;
+            // 立即记录开始时间，确保计时器与重量回调以此时间为准
             espressoStartTime = Date.now();
-            espressoStableWeight = -999; // 修复：初始化为无效值，避免0g时误判稳定
+            espressoStableWeight = -999; // 初始化为无效值，避免0g时误判稳定
             espressoStableTime = 0;
+            espressoLastSignificantChangeTime = espressoStartTime;
+            espressoLastSignificantWeight = currentWeight || 0;
             espressoFinalWeight = 0;
             updateEspressoUI();
 
             espressoInterval = setInterval(() => {
                 const elapsed = (Date.now() - espressoStartTime) / 1000;
-                const effective = Math.max(0, elapsed - ESPRESSO_PREINFUSION);
-                document.getElementById('espressoTimer').textContent = effective.toFixed(1);
+                // 计时器从0开始显示，不扣预浸泡时间
+                document.getElementById('espressoTimer').textContent = elapsed.toFixed(1);
             }, 100);
         }
 
-        function endEspresso() {
+        function endEspresso(endTime) {
             if (espressoInterval) { clearInterval(espressoInterval); espressoInterval = null; }
             espressoFinalWeight = currentWeight;
-            espressoFinalTime = Math.max(0, (Date.now() - espressoStartTime) / 1000 - ESPRESSO_PREINFUSION);
+            // 如果自动结束，传入的是最后一次显著变化的时间；手动结束使用当前时间
+            const actualEndTime = endTime || Date.now();
+            // 最终萃取时长取稳定开始时刻（不包含后续3秒确认等待）
+            espressoFinalTime = Math.max(0, (actualEndTime - espressoStartTime) / 1000);
             document.getElementById('espressoTimer').textContent = espressoFinalTime.toFixed(1);
             espressoState = ESPRESSO_STATES.END;
             beep(800, 200);
@@ -2926,6 +2940,8 @@
             espressoState = ESPRESSO_STATES.IDLE;
             espressoStableWeight = -999;
             espressoStableTime = 0;
+            espressoLastSignificantChangeTime = 0;
+            espressoLastSignificantWeight = 0;
             espressoFinalWeight = 0;
             espressoFinalTime = 0;
             document.getElementById('espressoWeight').textContent = '0.0';
@@ -2956,16 +2972,18 @@
 
             const now = Date.now();
 
-            if (Math.abs(weight - espressoStableWeight) <= 1) {
-                if (espressoStableTime === 0) {
-                    espressoStableTime = now;
-                    espressoStableWeight = weight;
-                } else if (now - espressoStableTime >= 5000) {
-                    endEspresso();
-                }
-            } else {
-                espressoStableTime = now;
-                espressoStableWeight = weight;
+            // 判断是否为显著变化（超过阈值）
+            if (Math.abs(weight - espressoLastSignificantWeight) > STABLE_THRESHOLD) {
+                // 出现显著变化，更新最后一次显著变化时间和参考重量
+                espressoLastSignificantChangeTime = now;
+                espressoLastSignificantWeight = weight;
+                return;
+            }
+
+            // 非显著变化：如果自上次显著变化后已经持续稳定超过确认时间，则结束萃取
+            if (espressoLastSignificantChangeTime > 0 && (now - espressoLastSignificantChangeTime) >= STABLE_CONFIRM_MS) {
+                // 使用最后一次显著变化的时间作为稳定开始时间（即萃取时长的结束时刻）
+                endEspresso(espressoLastSignificantChangeTime);
             }
         }
 

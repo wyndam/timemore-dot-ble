@@ -1,0 +1,49 @@
+<view class="page-container">
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px; padding-right: {{headerRight}}px;">
+    <view class="header-left">
+      <view class="back-btn" bindtap="goBack">‹ 返回</view>
+    </view>
+    <text class="header-title">{{title}}</text>
+    <view class="header-actions"></view>
+  </view>
+
+  <scroll-view class="edit-content" scroll-y="true">
+    <view class="form-group">
+      <text class="form-label">方案名称</text>
+      <input class="form-input" placeholder="如：标准三段式" value="{{name}}" bindinput="onNameInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">粉水比（如 1:15）</text>
+      <input class="form-input" placeholder="1:15" value="{{ratio}}" bindinput="onRatioInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">注水阶段（仅配置权重）</text>
+      <view class="stage-config" wx:for="{{stages}}" wx:key="index">
+        <view class="stage-config-header">
+          <text class="stage-config-title">阶段 {{index + 1}}</text>
+          <view class="recipe-item-btn" wx:if="{{stages.length > 1}}" catchtap="removeStage" data-index="{{index}}">删除</view>
+        </view>
+        <view class="stage-config-row">
+          <view class="stage-config-field">
+            <text class="field-label">权重</text>
+            <input class="field-input" type="digit" value="{{item.weight}}" bindinput="onStageInput" data-index="{{index}}" data-field="weight" />
+          </view>
+          <view class="stage-config-field">
+            <text class="field-label">目标流速 g/s</text>
+            <input class="field-input" type="digit" value="{{item.targetFlow}}" bindinput="onStageInput" data-index="{{index}}" data-field="targetFlow" />
+          </view>
+          <view class="stage-config-field">
+            <text class="field-label">提前喊停 g</text>
+            <input class="field-input" type="digit" value="{{item.stopEarly}}" bindinput="onStageInput" data-index="{{index}}" data-field="stopEarly" />
+          </view>
+        </view>
+      </view>
+      <view class="btn-add-stage" bindtap="addStage">+ 添加阶段</view>
+    </view>
+
+    <button class="btn-save" bindtap="saveRecipe">保存方案</button>
+    <button class="btn-delete" wx:if="{{showDelete}}" bindtap="deleteRecipe">删除方案</button>
+  </scroll-view>
+</view>

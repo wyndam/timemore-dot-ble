@@ -1,0 +1,114 @@
+<view class="page-container">
+  <!-- 顶部状态栏 -->
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px; padding-right: {{headerRight}}px;">
+    <view class="header-left">
+      <view class="back-btn" bindtap="goBack">‹ 返回</view>
+    </view>
+    <text class="header-title" style="color: #4ade80;">手冲咖啡</text>
+    <view class="header-actions">
+      <view class="icon-btn" bindtap="goRecipe">📋</view>
+    </view>
+  </view>
+
+  <!-- 主内容区 -->
+  <scroll-view class="main" scroll-y="true">
+    <!-- 方案选择区 -->
+    <view class="recipe-section" wx:if="{{showRecipe}}">
+      <view class="recipe-header">
+        <text class="recipe-name">{{recipeName}}</text>
+        <text class="recipe-ratio">粉水比 {{recipeRatioText}}</text>
+      </view>
+      <view class="recipe-stages">
+        <text class="stage-tag {{item.active ? 'active' : ''}}" wx:for="{{stageTags}}" wx:key="index">{{item.text}}</text>
+      </view>
+    </view>
+
+    <!-- 主引导区 -->
+    <view class="guide-section">
+      <view class="guide-row">
+        <text class="guide-icon">{{guideIcon}}</text>
+        <text class="guide-text">{{guideText}}</text>
+      </view>
+      <text class="guide-sub" wx:if="{{guideSub}}">{{guideSub}}</text>
+    </view>
+
+    <!-- 重量显示 -->
+    <view class="weight-display">
+      <view class="weight-row">
+        <text class="weight-value small {{weightNegative ? 'negative' : ''}}">{{brewWeight}}</text>
+        <text class="weight-unit small">g</text>
+      </view>
+      <view class="weight-status" wx:if="{{showWeightStatus}}">
+        <text>{{weightStatusText}}</text>
+      </view>
+    </view>
+
+    <!-- 分段进度条 -->
+    <view class="brew-progress" wx:if="{{showProgress}}">
+      <view class="progress-info">
+        <text class="progress-stage-label">{{progressStageLabel}}</text>
+        <text class="progress-target-label">{{progressTargetLabel}}</text>
+      </view>
+      <view class="progress-track">
+        <view class="progress-bar-fill" style="width: {{progressPercent}}%"></view>
+        <view class="progress-marker" wx:for="{{progressMarkers}}" wx:key="index" style="left: {{item}}%"></view>
+      </view>
+      <view class="progress-labels">
+        <text class="progress-label-item {{item.cls}}" wx:for="{{progressLabelItems}}" wx:key="index" style="left: {{item.offset}}%">{{item.text}}</text>
+      </view>
+    </view>
+
+    <!-- 时间和流速 -->
+    <view class="metrics" wx:if="{{showMetrics}}">
+      <view class="metric">
+        <view class="metric-label">计时</view>
+        <view><text class="metric-value">{{timer}}</text></view>
+      </view>
+      <view class="metric">
+        <view class="metric-label">流速</view>
+        <view>
+          <text class="metric-value">{{flowRate}}</text>
+          <text class="metric-unit">g/s</text>
+        </view>
+        <text class="flow-status {{flowStatusClass}}" wx:if="{{flowStatusText}}">{{flowStatusText}}</text>
+      </view>
+    </view>
+
+    <!-- 曲线图 -->
+    <view class="chart-container" wx:if="{{showChart}}">
+      <view class="chart-title">注水曲线</view>
+      <canvas type="2d" id="brewChart" style="width: 100%; height: 300rpx;"></canvas>
+    </view>
+
+    <!-- 完成面板 -->
+    <view class="completed-panel" wx:if="{{showCompleted}}">
+      <view class="completed-title">✅ 冲煮完成</view>
+      <view class="completed-metrics">
+        <view class="completed-metric">
+          <view class="completed-metric-label">粉重</view>
+          <view class="completed-metric-value">{{completedPowder}}</view>
+        </view>
+        <view class="completed-metric">
+          <view class="completed-metric-label">总时间</view>
+          <view class="completed-metric-value">{{completedTime}}</view>
+        </view>
+        <view class="completed-metric">
+          <view class="completed-metric-label">总水量</view>
+          <view class="completed-metric-value">{{completedWater}}</view>
+        </view>
+      </view>
+      <view class="completed-stage-item" wx:for="{{completedStages}}" wx:key="index">
+        <text>第{{index + 1}}段</text>
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 操作按钮 (sticky bottom) -->
+  <view class="actions-bar">
+    <view class="actions">
+      <button class="btn btn-tare" wx:if="{{showTareBtn}}" bindtap="onTareAction" disabled="{{tareBtnDisabled}}">{{tareBtnText}}</button>
+      <button class="btn btn-primary" bindtap="onMainAction" disabled="{{mainBtnDisabled}}">{{mainBtnText}}</button>
+    </view>
+  </view>
+</view>

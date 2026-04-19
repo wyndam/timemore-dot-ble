@@ -1,0 +1,26 @@
+<view class="page-container">
+  <view class="header" style="padding-top: {{statusBarHeight + 10}}px; padding-right: {{headerRight}}px;">
+    <view class="header-left">
+      <view class="back-btn" bindtap="goBack">‹ 返回</view>
+    </view>
+    <text class="header-title">冲煮历史</text>
+    <view class="header-actions">
+      <view class="icon-btn" bindtap="clearAll">🗑</view>
+    </view>
+  </view>
+
+  <scroll-view class="history-content" scroll-y="true">
+    <view class="empty-state" wx:if="{{records.length === 0}}">暂无冲煮记录</view>
+    <view class="list-item" wx:for="{{records}}" wx:key="index" bindtap="showDetail" data-index="{{index}}">
+      <view class="history-header-row">
+        <text class="list-item-name">{{item.typeLabel}}{{item.recipe}}</text>
+        <text class="history-time">{{item.timeText}}</text>
+      </view>
+      <view class="history-summary">
+        <text wx:if="{{item.type !== 'espresso'}}">粉重 <text class="value">{{item.coffeeWeightText}}</text></text>
+        <text>液重 <text class="value">{{item.maxWeightText}}</text></text>
+        <text>时长 <text class="value">{{item.durationText}}</text></text>
+      </view>
+    </view>
+  </scroll-view>
+</view>
