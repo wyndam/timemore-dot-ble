@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>手冲咖啡助手</title>
+    <title>咖啡称助手</title>
     <style>
         * {
             margin: 0;
@@ -33,6 +33,8 @@
             flex-direction: column;
             flex: 1;
             overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
         }
 
         .page.active {
@@ -53,6 +55,12 @@
         .header-title {
             font-size: 16px;
             font-weight: 600;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .device-status {
@@ -118,6 +126,18 @@
             cursor: pointer;
         }
 
+        .back-btn {
+            background: none;
+            border: none;
+            color: #4ade80;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         /* 主内容区 */
         .main {
             flex: 1;
@@ -125,8 +145,124 @@
             flex-direction: column;
             overflow-y: auto;
             padding: 10px;
-            padding-bottom: 70px;
+            padding-bottom: 80px;
         }
+
+        /* 重量显示区 */
+        .weight-display {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .weight-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .weight-value {
+            font-size: 56px;
+            font-weight: 200;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .weight-value.negative {
+            color: #f87171;
+        }
+
+        .weight-unit {
+            font-size: 20px;
+            color: #666;
+        }
+
+        .weight-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* ============ 称重主页 ============ */
+        .scale-main {
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 80px;
+        }
+
+        .tare-btn-full {
+            width: 100%;
+            max-width: 360px;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background: #1a1a1a;
+            color: #888;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tare-btn-full:active {
+            background: #222;
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
+        .tare-btn-full:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 6px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #888;
+            box-shadow: none;
+        }
+
+        .mode-btn:active {
+            color: #4ade80;
+        }
+
+        .mode-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .mode-btn:disabled:active {
+            color: #888;
+        }
+
+        .mode-btn svg {
+            width: 92px;
+            height: 92px;
+        }
+
+        /* ============ 手冲咖啡页 ============ */
 
         /* 方案选择区 */
         .recipe-section {
@@ -206,123 +342,98 @@
             margin-top: 2px;
         }
 
-        /* 重量显示区 */
-        .weight-display {
-            text-align: center;
-            padding: 8px 0;
-        }
-
-        .weight-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .weight-value {
-            font-size: 52px;
-            font-weight: 200;
-            font-family: 'SF Mono', 'Courier New', monospace;
-            color: #fff;
-            line-height: 1;
-        }
-
-        .weight-value.negative {
-            color: #f87171;
-        }
-
-        .weight-unit {
-            font-size: 20px;
-            color: #666;
-        }
-
-        .weight-status {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-top: 4px;
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* 分段进度 */
-        .stages-section {
+        /* ============ 新版冲煮进度条 ============ */
+        .brew-progress {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 12px;
             margin: 8px 0;
         }
 
-        .stages-track {
+        .progress-info {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 6px;
-            position: relative;
+            margin-bottom: 10px;
         }
 
-        .stage-node {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .progress-stage-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #4ade80;
+        }
+
+        .progress-target-label {
+            font-size: 13px;
+            color: #888;
+        }
+
+        .progress-track {
             position: relative;
+            height: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar-fill {
+            position: relative;
+            z-index: 1;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            border-radius: 4px;
+            transition: width 0.15s linear;
+        }
+
+        .progress-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(255,255,255,0.24);
             z-index: 2;
         }
 
-        .stage-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1a1a1a;
-            border: 2px solid #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 4px;
-            transition: all 0.3s;
-        }
-
-        .stage-circle.completed {
-            background: #1a3a1a;
-            border-color: #4ade80;
-            color: #4ade80;
-        }
-
-        .stage-circle.active {
-            background: #2a3a1a;
-            border-color: #4ade80;
-            color: #4ade80;
-            box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
-        }
-
-        .stage-label {
-            font-size: 9px;
-            color: #555;
-        }
-
-        .stage-connector {
-            flex: 0.5;
-            height: 3px;
-            background: #333;
-            margin-bottom: 16px;
-            position: relative;
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .stage-connector.completed {
-            background: #4ade80;
-        }
-
-        .stage-connector-progress {
+        .progress-bar-fill.active::after {
+            content: '';
             position: absolute;
-            left: 0;
+            right: 0;
             top: 0;
+            width: 6px;
             height: 100%;
-            background: #4ade80;
-            width: 0%;
-            transition: width 0.1s linear;
+            background: rgba(255,255,255,0.4);
+            border-radius: 0 4px 4px 0;
+            animation: fill-pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes fill-pulse {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .progress-labels {
+            position: relative;
+            height: 14px;
+        }
+
+        .progress-label-item {
+            font-size: 10px;
+            color: #555;
+            position: absolute;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            transition: color 0.3s;
+        }
+
+        .progress-label-item.completed {
+            color: #4ade80;
+        }
+
+        .progress-label-item.active {
+            color: #fff;
+            font-weight: 500;
         }
 
         /* 时间和流速 */
@@ -421,46 +532,66 @@
             cursor: not-allowed;
         }
 
-        /* 底部导航栏 */
-        .nav-bar {
+        /* 底部连接栏 */
+        .connect-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: #1a1a1a;
-            border-top: 1px solid #2a2a2a;
-            display: flex;
-            padding: 8px 0;
-            z-index: 50;
+            padding: 12px;
+            background: linear-gradient(to top, #0d0d0d 80%, transparent);
+            z-index: 10;
         }
 
-        .nav-item {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 6px 0;
-            color: #666;
-            font-size: 10px;
+        .btn-connect {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: color 0.2s;
+            background: #2a2a2a;
+            color: #888;
         }
 
-        .nav-item.active {
+        .btn-connect.connected {
+            background: #1a1a1a;
             color: #4ade80;
+            border: 1px solid #4ade80;
         }
 
-        .nav-icon {
-            font-size: 20px;
-            margin-bottom: 2px;
+        /* ============ 意式咖啡页 ============ */
+        .espresso-timer-section {
+            text-align: center;
+            padding: 16px 0;
         }
 
-        /* 方案页面 */
+        .espresso-timer {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .espresso-timer-value {
+            font-size: 48px;
+            font-weight: 200;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            color: #f59e0b;
+        }
+
+        .espresso-timer-unit {
+            font-size: 16px;
+            color: #666;
+        }
+
+        /* ============ 方案页面 ============ */
         .recipe-page-content {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            padding-bottom: 70px;
+            padding-bottom: 80px;
         }
 
         .recipe-list {
@@ -506,12 +637,6 @@
             border-radius: 3px;
             font-size: 10px;
             color: #888;
-        }
-
-        .recipe-item-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
         }
 
         .recipe-item-btn {
@@ -640,87 +765,12 @@
             margin-top: 8px;
         }
 
-        /* 意式咖啡页面 */
-        .espresso-params {
-            background: #1a1a1a;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        .espresso-param-row {
-            display: flex;
-            gap: 16px;
-        }
-
-        .espresso-param {
-            flex: 1;
-            text-align: center;
-        }
-
-        .espresso-param-label {
-            font-size: 11px;
-            color: #666;
-            margin-bottom: 6px;
-        }
-
-        .espresso-param-input {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-size: 18px;
-            color: #fff;
-        }
-
-        .espresso-param-input input {
-            width: 60px;
-            background: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 8px;
-            color: #fff;
-            font-size: 18px;
-            text-align: center;
-        }
-
-        .espresso-target {
-            text-align: center;
-            margin-top: 12px;
-            font-size: 14px;
-            color: #4ade80;
-        }
-
-        .espresso-timer-section {
-            text-align: center;
-            padding: 16px 0;
-        }
-
-        .espresso-timer {
-            display: flex;
-            align-items: baseline;
-            justify-content: center;
-            gap: 4px;
-        }
-
-        .espresso-timer-value {
-            font-size: 48px;
-            font-weight: 200;
-            font-family: 'SF Mono', 'Courier New', monospace;
-            color: #f59e0b;
-        }
-
-        .espresso-timer-unit {
-            font-size: 16px;
-            color: #666;
-        }
-
-        /* 导出页面 */
+        /* ============ 历史页面 ============ */
         .export-page-content {
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            padding-bottom: 70px;
+            padding-bottom: 80px;
         }
 
         .history-list {
@@ -853,30 +903,12 @@
             font-size: 22px;
             cursor: pointer;
         }
-
-        .btn-connect {
-            width: 100%;
-            padding: 14px;
-            border-radius: 10px;
-            border: none;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            background: #2a2a2a;
-            color: #888;
-        }
-
-        .btn-connect.connected {
-            background: #1a1a1a;
-            color: #4ade80;
-            border: 1px solid #4ade80;
-        }
     </style>
 </head>
 <body>
-    <!-- 主页面 - 冲煮 -->
-    <div class="page active" id="brewPage">
-        <!-- 顶部状态栏 -->
+
+    <!-- ============ 称重主页（默认） ============ -->
+    <div class="page active" id="scalePage">
         <div class="header">
             <div class="device-status">
                 <div class="status-dot" id="statusDot"></div>
@@ -884,11 +916,70 @@
                 <span class="state-badge" id="stateBadge">称重</span>
             </div>
             <div class="header-actions">
-                <button class="icon-btn" onclick="showExportModal()">↓</button>
+                <button class="icon-btn" onclick="switchToPage('history')" title="历史记录">📜</button>
             </div>
         </div>
+        <div class="main scale-main">
+            <div class="weight-display">
+                <div class="weight-row">
+                    <span class="weight-value" id="scaleWeight">0.0</span>
+                    <span class="weight-unit">g</span>
+                </div>
+            </div>
+            <button class="tare-btn-full" id="scaleTareBtn" onclick="sendTare()" disabled>去皮</button>
+            <div class="mode-buttons">
+                <button class="mode-btn" id="brewModeBtn" onclick="enterBrewMode()" disabled>
+                    <svg viewBox="0 0 96 96" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-label="手冲咖啡">
+                        <rect x="22" y="78" width="52" height="8" rx="3" fill="#6f4b3f"/>
+                        <rect x="26" y="18" width="4" height="62" rx="2" fill="#b67a70"/>
+                        <rect x="26" y="26" width="42" height="3" rx="1.5" fill="#b67a70"/>
+                        <path d="M34 22 L66 22 L61 42 Q58 52 50 52 Q42 52 39 42 Z" fill="#f3efe4" stroke="#8b6d62" stroke-width="1.4"/>
+                        <path d="M39 29 L61 29 M40 34 L60 34 M42 39 L58 39" stroke="#c8b8a8" stroke-width="1.2"/>
+                        <ellipse cx="50" cy="52" rx="13" ry="2.5" fill="#d8f1f6" stroke="#8da7ad" stroke-width="1"/>
+                        <path d="M37 54 Q36 73 38 75 Q40 77 50 77 Q60 77 62 75 Q64 73 63 54 Z" fill="#eff7f8" stroke="#8da7ad" stroke-width="1.3"/>
+                        <path d="M38 65 Q50 60 62 65 L62 75 Q60 77 50 77 Q40 77 38 75 Z" fill="#4a2e24"/>
+                        <path d="M63 59 Q69 58 70 63 Q70 69 63 69" stroke="#8da7ad" stroke-width="1.4"/>
+                        <ellipse cx="50" cy="65" rx="11" ry="1.8" fill="#5b3a2c" opacity="0.55"/>
+                    </svg>
+                </button>
+                <button class="mode-btn" id="espressoModeBtn" onclick="enterEspressoMode()" disabled>
+                    <svg viewBox="0 0 96 96" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-label="意式咖啡">
+                        <rect x="18" y="12" width="60" height="8" rx="3" fill="#c5a46d"/>
+                        <rect x="16" y="18" width="64" height="38" rx="7" fill="#3eaec0" stroke="#225d69" stroke-width="1.8"/>
+                        <circle cx="28" cy="30" r="4.5" fill="#e3d3ab" stroke="#7d5f3a" stroke-width="1.2"/>
+                        <circle cx="38" cy="30" r="4.5" fill="#e3d3ab" stroke="#7d5f3a" stroke-width="1.2"/>
+                        <circle cx="52" cy="30" r="5.5" fill="#f2e8d0" stroke="#7d5f3a" stroke-width="1.2"/>
+                        <circle cx="52" cy="30" r="2.3" fill="#7d5f3a"/>
+                        <circle cx="66" cy="30" r="6.8" fill="#f6f2e6" stroke="#7d5f3a" stroke-width="1.4"/>
+                        <path d="M66 30 L69 27" stroke="#7d5f3a" stroke-width="1.4"/>
+                        <circle cx="66" cy="30" r="1" fill="#7d5f3a"/>
+                        <rect x="24" y="56" width="48" height="22" rx="4" fill="#2f9daf" stroke="#225d69" stroke-width="1.6"/>
+                        <path d="M52 56 L58 46" stroke="#7d5f3a" stroke-width="2.2"/>
+                        <path d="M58 46 Q62 43 66 47" stroke="#7d5f3a" stroke-width="2"/>
+                        <path d="M30 69 Q30 61 38 61 Q46 61 46 69" fill="#f4f9fb" stroke="#7ea0aa" stroke-width="1.3"/>
+                        <path d="M32 69 Q33 64 38 64 Q43 64 44 69 Z" fill="#5f3a2b"/>
+                        <path d="M44 66 Q47 66 47 69" stroke="#7ea0aa" stroke-width="1.2"/>
+                        <rect x="20" y="78" width="56" height="7" rx="3" fill="#6f5d3a"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="connect-bar">
+            <button class="btn-connect" id="connectBtn" onclick="connect()">连接电子秤</button>
+        </div>
+    </div>
 
-        <!-- 主内容 -->
+    <!-- ============ 手冲咖啡页面 ============ -->
+    <div class="page" id="brewPage">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="exitBrewMode()">‹ 返回</button>
+            </div>
+            <span class="header-title" style="color: #4ade80;">手冲咖啡</span>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="switchToPage('recipe')" title="冲煮方案">📋</button>
+            </div>
+        </div>
         <div class="main">
             <!-- 方案选择区 -->
             <div class="recipe-section" id="recipeSection" style="display:none;">
@@ -902,16 +993,16 @@
             <!-- 主引导区 -->
             <div class="guide-section">
                 <div class="guide-row">
-                    <span class="guide-icon" id="guideIcon">⚖️</span>
-                    <span class="guide-text" id="guideText">称重模式</span>
+                    <span class="guide-icon" id="guideIcon">☕</span>
+                    <span class="guide-text" id="guideText">请加入咖啡粉</span>
                 </div>
-                <div class="guide-sub" id="guideSub">点击"手冲咖啡"开始</div>
+                <div class="guide-sub" id="guideSub">当前粉重: 0.0g</div>
             </div>
 
             <!-- 重量显示 -->
             <div class="weight-display">
                 <div class="weight-row">
-                    <span class="weight-value" id="weight">0.0</span>
+                    <span class="weight-value" id="brewWeight">0.0</span>
                     <span class="weight-unit">g</span>
                 </div>
                 <div class="weight-status" id="weightStatus">
@@ -919,9 +1010,14 @@
                 </div>
             </div>
 
-            <!-- 分段进度 -->
-            <div class="stages-section" id="stagesSection" style="display:none;">
-                <div class="stages-track" id="stagesTrack"></div>
+            <!-- 新版分段进度条 -->
+            <div class="brew-progress" id="brewProgress" style="display:none;">
+                <div class="progress-info">
+                    <span class="progress-stage-label" id="progressStageLabel">阶段 1/3</span>
+                    <span class="progress-target-label" id="progressTargetLabel">注水至 45g</span>
+                </div>
+                <div class="progress-track" id="progressTrack"></div>
+                <div class="progress-labels" id="progressLabels"></div>
             </div>
 
             <!-- 时间和流速 -->
@@ -948,113 +1044,28 @@
 
             <!-- 操作按钮 -->
             <div class="actions" id="actionsSection">
-                <button class="btn btn-tare" id="tareBtn" onclick="handleTareAction()" disabled>去皮</button>
-                <button class="btn btn-primary" id="mainBtn" onclick="handleMainAction()" disabled>手冲咖啡</button>
+                <button class="btn btn-tare" id="tareBtn" onclick="handleTareAction()">取消</button>
+                <button class="btn btn-primary" id="mainBtn" onclick="handleMainAction()">开始冲煮</button>
             </div>
         </div>
-
-        <!-- 底部连接栏 -->
-        <div style="position: fixed; bottom: 56px; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, #0d0d0d 80%, transparent);">
-            <button class="btn-connect" id="connectBtn" onclick="connect()">连接电子秤</button>
-        </div>
     </div>
 
-    <!-- 方案页面 -->
-    <div class="page" id="recipePage">
-        <div class="header">
-            <span class="header-title">冲煮方案</span>
-            <button class="icon-btn" onclick="showRecipeEditor(null)">+</button>
-        </div>
-        <div class="recipe-page-content">
-            <div class="recipe-list" id="recipePageList"></div>
-        </div>
-    </div>
-
-    <!-- 历史页面 -->
-    <div class="page" id="historyPage">
-        <div class="header">
-            <span class="header-title">冲煮历史</span>
-            <button class="icon-btn" onclick="clearAllHistory()" title="清空历史">🗑</button>
-        </div>
-        <div class="export-page-content">
-            <div class="history-list" id="historyList"></div>
-        </div>
-    </div>
-
-    <!-- 历史详情弹窗 -->
-    <div class="modal" id="historyDetailModal">
-        <div class="modal-content" style="max-height: 90vh;">
-            <div class="modal-header">
-                <span class="modal-title" id="historyDetailTitle">冲煮详情</span>
-                <button class="modal-close" onclick="closeHistoryDetail()">×</button>
-            </div>
-            <div id="historyDetailContent">
-                <div class="history-detail-stats" id="historyDetailStats"></div>
-                <div class="chart-container" style="margin-top: 12px;">
-                    <div class="chart-title">注水曲线</div>
-                    <canvas id="historyChart"></canvas>
-                </div>
-            </div>
-            <button class="btn-delete" style="margin-top: 16px;" onclick="deleteHistoryRecord()">删除此记录</button>
-        </div>
-    </div>
-
-    <!-- 底部导航栏 -->
-    <div class="nav-bar">
-        <div class="nav-item active" id="navBrew" onclick="switchPage('brew')">
-            <span class="nav-icon">☕</span>
-            <span>手冲</span>
-        </div>
-        <div class="nav-item" id="navEspresso" onclick="switchPage('espresso')">
-            <span class="nav-icon">🫖</span>
-            <span>意式</span>
-        </div>
-        <div class="nav-item" id="navRecipe" onclick="switchPage('recipe')">
-            <span class="nav-icon">📋</span>
-            <span>方案</span>
-        </div>
-        <div class="nav-item" id="navHistory" onclick="switchPage('history')">
-            <span class="nav-icon">📜</span>
-            <span>历史</span>
-        </div>
-    </div>
-
-    <!-- 意式咖啡页面 -->
+    <!-- ============ 意式咖啡页面（简化版） ============ -->
     <div class="page" id="espressoPage">
         <div class="header">
-            <div class="device-status">
-                <div class="status-dot" id="espressoStatusDot"></div>
-                <span class="device-name" id="espressoDeviceName">未连接</span>
+            <div class="header-left">
+                <button class="back-btn" onclick="exitEspressoMode()">‹ 返回</button>
             </div>
+            <span class="header-title" style="color: #f59e0b;">意式咖啡</span>
+            <div class="header-actions"></div>
         </div>
-        <div class="main">
-            <div class="guide-section">
+        <div class="main" style="justify-content: center; align-items: center; gap: 8px;">
+            <div class="guide-section" style="width: 100%;">
                 <div class="guide-row">
-                    <span class="guide-icon" id="espressoGuideIcon">🫖</span>
-                    <span class="guide-text" id="espressoGuideText">意式浓缩</span>
+                    <span class="guide-icon" id="espressoGuideIcon">☕</span>
+                    <span class="guide-text" id="espressoGuideText" style="color: #f59e0b;">意式浓缩</span>
                 </div>
-                <div class="guide-sub" id="espressoGuideSub">设置参数后开始</div>
-            </div>
-
-            <!-- 参数设置 -->
-            <div class="espresso-params" id="espressoParams">
-                <div class="espresso-param-row">
-                    <div class="espresso-param">
-                        <div class="espresso-param-label">咖啡粉重</div>
-                        <div class="espresso-param-input">
-                            <input type="number" id="espressoDoseWeight" value="18" step="0.5"> g
-                        </div>
-                    </div>
-                    <div class="espresso-param">
-                        <div class="espresso-param-label">粉水比</div>
-                        <div class="espresso-param-input">
-                            1 : <input type="number" id="espressoRatio" value="2" step="0.5">
-                        </div>
-                    </div>
-                </div>
-                <div class="espresso-target">
-                    目标液重: <span id="espressoTargetWeight">36</span> g
-                </div>
+                <div class="guide-sub" id="espressoGuideSub">按下开始，记录萃取时长和出液重量</div>
             </div>
 
             <!-- 重量显示 -->
@@ -1077,19 +1088,64 @@
             </div>
 
             <!-- 操作按钮 -->
-            <div class="actions">
+            <div class="actions" style="width: 100%;">
                 <button class="btn btn-tare" id="espressoTareBtn" onclick="sendTare()" disabled>去皮</button>
-                <button class="btn btn-primary" id="espressoMainBtn" onclick="handleEspressoAction()" disabled>开始萃取</button>
+                <button class="btn btn-primary" id="espressoMainBtn" onclick="handleEspressoAction()" style="background: #f59e0b;">开始萃取</button>
             </div>
-        </div>
-
-        <!-- 底部连接栏 -->
-        <div style="position: fixed; bottom: 56px; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, #0d0d0d 80%, transparent);">
-            <button class="btn-connect" id="espressoConnectBtn" onclick="connect()">连接电子秤</button>
         </div>
     </div>
 
-    <!-- 方案编辑弹窗 -->
+    <!-- ============ 方案页面 ============ -->
+    <div class="page" id="recipePage">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="switchToPage('brew')">‹ 返回</button>
+            </div>
+            <span class="header-title">冲煮方案</span>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="showRecipeEditor(null)">+</button>
+            </div>
+        </div>
+        <div class="recipe-page-content">
+            <div class="recipe-list" id="recipePageList"></div>
+        </div>
+    </div>
+
+    <!-- ============ 历史页面 ============ -->
+    <div class="page" id="historyPage">
+        <div class="header">
+            <div class="header-left">
+                <button class="back-btn" onclick="switchToPage('scale')">‹ 返回</button>
+            </div>
+            <span class="header-title">冲煮历史</span>
+            <div class="header-actions">
+                <button class="icon-btn" onclick="clearAllHistory()" title="清空历史">🗑</button>
+            </div>
+        </div>
+        <div class="export-page-content">
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- ============ 历史详情弹窗 ============ -->
+    <div class="modal" id="historyDetailModal">
+        <div class="modal-content" style="max-height: 90vh;">
+            <div class="modal-header">
+                <span class="modal-title" id="historyDetailTitle">冲煮详情</span>
+                <button class="modal-close" onclick="closeHistoryDetail()">×</button>
+            </div>
+            <div id="historyDetailContent">
+                <div class="history-detail-stats" id="historyDetailStats"></div>
+                <div class="chart-container" style="margin-top: 12px;">
+                    <div class="chart-title">注水曲线</div>
+                    <canvas id="historyChart"></canvas>
+                </div>
+            </div>
+            <button class="btn-delete" style="margin-top: 16px;" onclick="deleteHistoryRecord()">删除此记录</button>
+        </div>
+    </div>
+
+    <!-- ============ 方案编辑弹窗 ============ -->
     <div class="modal" id="editorModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1105,11 +1161,7 @@
                 <input class="form-input" type="text" id="editRatio" value="1:15">
             </div>
             <div class="form-group">
-                <label class="form-label">咖啡粉重（g）- 用于计算目标水量</label>
-                <input class="form-input" type="number" id="editCoffeeWeight" value="15">
-            </div>
-            <div class="form-group">
-                <label class="form-label">注水阶段（目标水量 = 粉重 × 倍数）</label>
+                <label class="form-label">注水阶段（仅配置权重）</label>
                 <div id="stageEditorList"></div>
                 <button class="btn-add-stage" onclick="addStage()">+ 添加阶段</button>
             </div>
@@ -1132,6 +1184,7 @@
         // ==================== 状态机 ====================
         const STATES = {
             IDLE: 'idle',
+            CONFIGURED: 'configured',
             WEIGHING: 'weighing',
             ADD_POWDER: 'addPowder',
             COUNTDOWN: 'countdown',
@@ -1141,6 +1194,7 @@
 
         const STATE_LABELS = {
             [STATES.IDLE]: 'Idle',
+            [STATES.CONFIGURED]: '已配置',
             [STATES.WEIGHING]: '称重',
             [STATES.ADD_POWDER]: '加粉',
             [STATES.COUNTDOWN]: '倒计时',
@@ -1157,18 +1211,20 @@
         };
 
         let espressoState = ESPRESSO_STATES.IDLE;
-        let espressoDoseWeight = 18;
-        let espressoRatio = 2;
         let espressoStartTime = 0;
         let espressoInterval = null;
         let espressoStableWeight = 0;
         let espressoStableTime = 0;
         let espressoFinalWeight = 0;
+        let espressoFinalTime = 0;
+        const ESPRESSO_PREINFUSION = 5;
 
         // ==================== 全局变量 ====================
         let device = null, server = null, dataChar = null, ctrlChar = null;
         let connected = false;
+        let isConnecting = false;
         let currentState = STATES.IDLE;
+        let currentPage = 'scale';
 
         let currentWeight = 0;
         let lastWeight = 0;
@@ -1191,6 +1247,10 @@
         let currentRecipe = null;
         let currentStageIndex = -1;
         let stageCompletedFlags = [];
+        let stageWaterAccum = []; // 每段累计水量
+        let stageTargets = []; // 每段动态目标水量
+        let stageStopNotified = []; // 每段提前喊停提示
+        let recipeConfigured = false;
 
         // 方案列表
         let recipes = [];
@@ -1206,49 +1266,83 @@
                 id: 'three-stage',
                 name: '标准三段式',
                 ratio: '1:15',
-                defaultCoffeeWeight: 15,
                 stages: [
-                    { multiplier: 3, targetFlow: 4, stopEarly: 4 },
-                    { multiplier: 11, targetFlow: 4, stopEarly: 4 },
-                    { multiplier: 15, targetFlow: 4, stopEarly: 4 }
+                    { weight: 3, targetFlow: 4, stopEarly: 4 },
+                    { weight: 8, targetFlow: 4, stopEarly: 4 },
+                    { weight: 7, targetFlow: 4, stopEarly: 4 }
                 ]
             },
             {
                 id: 'one-pour',
                 name: '一刀流',
                 ratio: '1:15',
-                defaultCoffeeWeight: 15,
                 stages: [
-                    { multiplier: 15, targetFlow: 4, stopEarly: 4 }
+                    { weight: 18, targetFlow: 4, stopEarly: 4 }
                 ]
             },
             {
                 id: 'two-stage',
                 name: '两段式',
                 ratio: '1:15',
-                defaultCoffeeWeight: 15,
                 stages: [
-                    { multiplier: 7.5, targetFlow: 4, stopEarly: 4 },
-                    { multiplier: 15, targetFlow: 4, stopEarly: 4 }
+                    { weight: 5, targetFlow: 4, stopEarly: 4 },
+                    { weight: 13, targetFlow: 4, stopEarly: 4 }
                 ]
             }
         ];
 
         function cloneDefaults() {
             try {
-                if (typeof structuredClone === 'function') {
-                    return structuredClone(DEFAULT_RECIPES);
-                }
+                if (typeof structuredClone === 'function') return structuredClone(DEFAULT_RECIPES);
             } catch (e) {}
             return JSON.parse(JSON.stringify(DEFAULT_RECIPES));
         }
 
+        function parseRatioValue(ratioText) {
+            if (typeof ratioText !== 'string') return 15;
+            const m = ratioText.match(/(\d+(?:\.\d+)?)\s*:\s*(\d+(?:\.\d+)?)/);
+            if (m) {
+                const right = parseFloat(m[2]);
+                return right > 0 ? right : 15;
+            }
+            const n = parseFloat(ratioText);
+            return Number.isFinite(n) && n > 0 ? n : 15;
+        }
+
+        function normalizeRecipe(recipe) {
+            const ratioValue = parseRatioValue(recipe && recipe.ratio);
+            const stagesRaw = Array.isArray(recipe && recipe.stages) ? recipe.stages : [];
+            const stages = stagesRaw.map((s, i) => {
+                const w = parseFloat(s.weight);
+                const weight = Number.isFinite(w) && w > 0 ? w : (i + 1);
+                const targetFlow = Number.isFinite(parseFloat(s.targetFlow)) && parseFloat(s.targetFlow) > 0 ? parseFloat(s.targetFlow) : 4;
+                const stopEarly = Number.isFinite(parseFloat(s.stopEarly)) && parseFloat(s.stopEarly) >= 0 ? parseFloat(s.stopEarly) : 4;
+                return { weight, targetFlow, stopEarly };
+            });
+            return {
+                id: recipe && recipe.id ? recipe.id : ('custom-' + Date.now()),
+                name: recipe && recipe.name ? recipe.name : '自定义方案',
+                ratio: '1:' + ratioValue,
+                stages: stages.length > 0 ? stages : [{ weight: 1, targetFlow: 4, stopEarly: 4 }]
+            };
+        }
+
+        function computeStageTargets(powderWeight) {
+            if (!currentRecipe || !Array.isArray(currentRecipe.stages)) return [];
+            const pw = Math.max(0, Number(powderWeight) || 0);
+            const ratio = parseRatioValue(currentRecipe.ratio);
+            const totalWater = pw * ratio;
+            const totalWeight = currentRecipe.stages.reduce((sum, s) => sum + (Number(s.weight) || 0), 0) || 1;
+            return currentRecipe.stages.map(s => totalWater * ((Number(s.weight) || 0) / totalWeight));
+        }
+
         // ==================== DOM 元素 ====================
-        const weightEl = document.getElementById('weight');
+        const brewWeightEl = document.getElementById('brewWeight');
+        const scaleWeightEl = document.getElementById('scaleWeight');
         const flowEl = document.getElementById('flowRate');
         const timerEl = document.getElementById('timer');
         const statusDot = document.getElementById('statusDot');
-        const deviceName = document.getElementById('deviceName');
+        const deviceNameEl = document.getElementById('deviceName');
         const stateBadge = document.getElementById('stateBadge');
         const connectBtn = document.getElementById('connectBtn');
         const mainBtn = document.getElementById('mainBtn');
@@ -1274,33 +1368,68 @@
         }
 
         // ==================== 页面切换 ====================
-        function switchPage(page) {
-            // 隐藏所有页面
+        function switchToPage(page) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            currentPage = page;
 
-            // 显示目标页面
-            switch(page) {
+            switch (page) {
+                case 'scale':
+                    document.getElementById('scalePage').classList.add('active');
+                    break;
                 case 'brew':
                     document.getElementById('brewPage').classList.add('active');
-                    document.getElementById('navBrew').classList.add('active');
                     break;
                 case 'espresso':
                     document.getElementById('espressoPage').classList.add('active');
-                    document.getElementById('navEspresso').classList.add('active');
                     updateEspressoUI();
                     break;
                 case 'recipe':
                     document.getElementById('recipePage').classList.add('active');
-                    document.getElementById('navRecipe').classList.add('active');
                     renderRecipePageList();
                     break;
                 case 'history':
                     document.getElementById('historyPage').classList.add('active');
-                    document.getElementById('navHistory').classList.add('active');
                     renderHistory();
                     break;
             }
+        }
+
+        function enterBrewMode() {
+            if (!connected) return;
+            // 进入手冲模式 → 去皮 → 加粉状态
+            switchToPage('brew');
+            mainBtn.disabled = true;
+            mainBtn.textContent = '准备中...';
+            sendTare().then(() => {
+                coffeeWeight = 0;
+                currentWeight = 0;
+                brewWeightEl.textContent = '0.0';
+                setTimeout(() => setState(STATES.ADD_POWDER), 500);
+            });
+        }
+
+        function exitBrewMode() {
+            if (currentState === STATES.BREWING || currentState === STATES.COUNTDOWN) {
+                if (!confirm('冲煮进行中，确定退出吗？')) return;
+            }
+            resetBrew();
+            setState(connected ? STATES.WEIGHING : STATES.IDLE);
+            switchToPage('scale');
+        }
+
+        function enterEspressoMode() {
+            if (!connected) return;
+            switchToPage('espresso');
+            espressoState = ESPRESSO_STATES.IDLE;
+            updateEspressoUI();
+        }
+
+        function exitEspressoMode() {
+            if (espressoState === ESPRESSO_STATES.BREWING || espressoState === ESPRESSO_STATES.COUNTDOWN) {
+                if (!confirm('萃取进行中，确定退出吗？')) return;
+            }
+            resetEspresso();
+            switchToPage('scale');
         }
 
         function resizeCanvas() {
@@ -1316,15 +1445,11 @@
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
-                    if (!Array.isArray(parsed)) throw new Error('Invalid recipe format');
-                    // 验证方案格式是否正确（检查是否有multiplier字段）
-                    const valid = parsed.every(r =>
-                        r.stages && r.stages.every(s => typeof s.multiplier === 'number')
-                    );
-                    if (valid) {
-                        recipes = parsed;
+                    if (!Array.isArray(parsed)) throw new Error('Invalid');
+                    const migrated = parsed.map(r => normalizeRecipe(r));
+                    if (migrated.length > 0) {
+                        recipes = migrated;
                     } else {
-                        // 格式不正确，使用默认方案
                         localStorage.removeItem('brewRecipes');
                         recipes = cloneDefaults();
                         saveRecipes();
@@ -1345,77 +1470,71 @@
         }
 
         function selectRecipe(recipe) {
-            currentRecipe = recipe;
-            document.getElementById('recipeName').textContent = recipe.name;
-            document.getElementById('recipeRatio').textContent = `粉水比 ${recipe.ratio}`;
+            currentRecipe = normalizeRecipe(recipe);
+            document.getElementById('recipeName').textContent = currentRecipe.name;
+            document.getElementById('recipeRatio').textContent = '\u7C89\u6C34\u6BD4 1:' + parseRatioValue(currentRecipe.ratio);
 
-            // 渲染阶段标签
             const stagesEl = document.getElementById('recipeStages');
-            stagesEl.innerHTML = recipe.stages.map((s, i) =>
-                `<span class="stage-tag" id="stageTag${i}">${s.multiplier}倍</span>`
-            ).join('');
+            if (currentState === STATES.ADD_POWDER) {
+                updateAddPowderRecipe(currentWeight);
+            } else {
+                stagesEl.innerHTML = currentRecipe.stages.map((s, i) =>
+                    '<span class="stage-tag" id="stageTag' + i + '">权重 ' + (Number(s.weight) || 0).toFixed(0) + '</span>'
+                ).join('');
+            }
 
-            // 更新方案页面的选中状态
             renderRecipePageList();
         }
 
-        // 加粉阶段更新方案显示
-        function updateAddPowderRecipe(coffeeWeight) {
-            if (!currentRecipe) return;
-
+        function updateAddPowderRecipe(cw) {
+            if (!currentRecipe || cw <= 0) return;
+            const targets = computeStageTargets(cw);
             const stagesEl = document.getElementById('recipeStages');
             stagesEl.innerHTML = currentRecipe.stages.map((s, i) => {
-                const targetWater = coffeeWeight * s.multiplier;
-                return `<span class="stage-tag" id="stageTag${i}">${s.multiplier}倍 = ${targetWater.toFixed(0)}g</span>`;
+                return '<span class="stage-tag" id="stageTag' + i + '">W' + (Number(s.weight) || 0).toFixed(0) + ' = ' + (targets[i] || 0).toFixed(0) + 'g</span>';
             }).join('');
         }
 
-        // 方案页面的列表渲染
         function renderRecipePageList() {
             const list = document.getElementById('recipePageList');
             const isDefault = (id) => DEFAULT_RECIPES.find(d => d.id === id);
-            list.innerHTML = recipes.map(r => `
-                <div class="recipe-item ${currentRecipe && currentRecipe.id === r.id ? 'selected' : ''}" onclick="selectRecipeFromPage('${r.id}')">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div class="recipe-item-name">${r.name}</div>
-                            <div class="recipe-item-info">粉水比 ${r.ratio} · ${r.stages.length}段注水</div>
-                        </div>
-                        <div style="display: flex; gap: 8px;">
-                            <button class="recipe-item-btn" onclick="event.stopPropagation(); showRecipeEditor('${r.id}')">编辑</button>
-                            ${!isDefault(r.id) ? `<button class="recipe-item-btn" style="color: #f87171; border-color: #f87171;" onclick="event.stopPropagation(); deleteRecipeDirect('${r.id}')">删除</button>` : ''}
-                        </div>
-                    </div>
-                    <div class="recipe-item-stages">
-                        ${r.stages.map(s => `<span class="recipe-item-stage">${s.multiplier}倍</span>`).join('')}
-                    </div>
-                </div>
-            `).join('');
+            list.innerHTML = recipes.map(r => {
+                const sel = currentRecipe && currentRecipe.id === r.id ? ' selected' : '';
+                const delBtn = !isDefault(r.id) ? '<button class="recipe-item-btn" style="color:#f87171;border-color:#f87171;" onclick="event.stopPropagation();deleteRecipeDirect(\'' + r.id + '\')">删除</button>' : '';
+                return '<div class="recipe-item' + sel + '" onclick="selectRecipeFromPage(\'' + r.id + '\')">' +
+                    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+                    '<div><div class="recipe-item-name">' + r.name + '</div>' +
+                    '<div class="recipe-item-info">\u7C89\u6C34\u6BD4 ' + r.ratio + ' \xB7 ' + r.stages.length + '\u6BB5\u6CE8\u6C34</div></div>' +
+                    '<div style="display:flex;gap:8px;">' +
+                    '<button class="recipe-item-btn" onclick="event.stopPropagation();showRecipeEditor(\'' + r.id + '\')">编辑</button>' +
+                    delBtn + '</div></div>' +
+                    '<div class="recipe-item-stages">' + r.stages.map(s => '<span class="recipe-item-stage">W' + (Number(s.weight) || 0).toFixed(0) + '</span>').join('') + '</div>' +
+                    '</div>';
+            }).join('');
         }
 
         function selectRecipeFromPage(id) {
             const recipe = recipes.find(r => r.id === id);
             if (recipe) {
                 selectRecipe(recipe);
-                switchPage('brew');
+                switchToPage('brew');
+                // 如果当前是加粉状态，保持该状态
+                if (currentState === STATES.ADD_POWDER) {
+                    updateUI();
+                } else {
+                    enterBrewMode();
+                }
             }
-        }
-
-        function showExportModal() {
-            switchPage('history');
         }
 
         function showRecipeEditor(id) {
             editingRecipeId = id;
             const recipe = id ? recipes.find(r => r.id === id) : null;
-
             document.getElementById('editorTitle').textContent = recipe ? '编辑方案' : '新建方案';
             document.getElementById('editName').value = recipe ? recipe.name : '';
-            document.getElementById('editRatio').value = recipe ? recipe.ratio : '1:15';
-            document.getElementById('editCoffeeWeight').value = recipe ? recipe.defaultCoffeeWeight : 15;
+            document.getElementById('editRatio').value = recipe ? ('1:' + parseRatioValue(recipe.ratio)) : '1:15';
             document.getElementById('deleteRecipeBtn').style.display = recipe && !DEFAULT_RECIPES.find(d => d.id === recipe.id) ? 'block' : 'none';
-
-            renderStageEditor(recipe ? recipe.stages : [{ multiplier: 15, targetFlow: 4, stopEarly: 4 }]);
+            renderStageEditor(recipe ? recipe.stages : [{ weight: 1, targetFlow: 4, stopEarly: 4 }]);
             document.getElementById('editorModal').classList.add('show');
         }
 
@@ -1425,33 +1544,21 @@
 
         function renderStageEditor(stages) {
             const list = document.getElementById('stageEditorList');
-            list.innerHTML = stages.map((s, i) => `
-                <div class="stage-config">
-                    <div class="stage-config-header">
-                        <span class="stage-config-title">阶段 ${i + 1}</span>
-                        ${stages.length > 1 ? `<button class="recipe-item-btn" onclick="removeStage(${i})">删除</button>` : ''}
-                    </div>
-                    <div class="stage-config-row">
-                        <div class="stage-config-field">
-                            <label>粉重倍数</label>
-                            <input type="number" step="0.5" value="${s.multiplier}" id="stageMultiplier${i}">
-                        </div>
-                        <div class="stage-config-field">
-                            <label>目标流速 g/s</label>
-                            <input type="number" step="0.5" value="${s.targetFlow}" id="stageFlow${i}">
-                        </div>
-                        <div class="stage-config-field">
-                            <label>提前喊停 g</label>
-                            <input type="number" value="${s.stopEarly}" id="stageStop${i}">
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            list.innerHTML = stages.map((s, i) => {
+                const del = stages.length > 1 ? '<button class="recipe-item-btn" onclick="removeStage(' + i + ')">删除</button>' : '';
+                return '<div class="stage-config">' +
+                    '<div class="stage-config-header"><span class="stage-config-title">阶段 ' + (i+1) + '</span>' + del + '</div>' +
+                    '<div class="stage-config-row">' +
+                    '<div class="stage-config-field"><label>权重</label><input type="number" step="1" value="' + (s.weight || 1) + '" id="stageWeight' + i + '"></div>' +
+                    '<div class="stage-config-field"><label>目标流速 g/s</label><input type="number" step="0.5" value="' + s.targetFlow + '" id="stageFlow' + i + '"></div>' +
+                    '<div class="stage-config-field"><label>提前喊停 g</label><input type="number" value="' + s.stopEarly + '" id="stageStop' + i + '"></div>' +
+                    '</div></div>';
+            }).join('');
         }
 
         function addStage() {
             const stages = getStagesFromEditor();
-            stages.push({ multiplier: 15, targetFlow: 4, stopEarly: 4 });
+            stages.push({ weight: 1, targetFlow: 4, stopEarly: 4 });
             renderStageEditor(stages);
         }
 
@@ -1465,11 +1572,11 @@
             const list = document.getElementById('stageEditorList');
             const configs = list.querySelectorAll('.stage-config');
             const stages = [];
-            configs.forEach((config, i) => {
+            configs.forEach((_, i) => {
                 stages.push({
-                    multiplier: parseFloat(document.getElementById(`stageMultiplier${i}`).value) || 15,
-                    targetFlow: parseFloat(document.getElementById(`stageFlow${i}`).value) || 4,
-                    stopEarly: parseFloat(document.getElementById(`stageStop${i}`).value) || 4
+                    weight: parseFloat(document.getElementById('stageWeight' + i).value) || 1,
+                    targetFlow: parseFloat(document.getElementById('stageFlow' + i).value) || 4,
+                    stopEarly: parseFloat(document.getElementById('stageStop' + i).value) || 4
                 });
             });
             return stages;
@@ -1478,18 +1585,12 @@
         function saveRecipe() {
             const name = document.getElementById('editName').value.trim();
             const ratio = document.getElementById('editRatio').value.trim();
-            const coffeeWeight = parseFloat(document.getElementById('editCoffeeWeight').value) || 15;
             const stages = getStagesFromEditor();
+            const ratioValue = parseRatioValue(ratio);
 
-            if (!name) {
-                alert('请输入方案名称');
-                return;
-            }
-            if (!stages.length) {
-                alert('请至少保留一个注水阶段');
-                return;
-            }
-            if (coffeeWeight <= 0 || stages.some(s => s.multiplier <= 0 || s.targetFlow <= 0 || s.stopEarly < 0)) {
+            if (!name) { alert('请输入方案名称'); return; }
+            if (!stages.length) { alert('请至少保留一个注水阶段'); return; }
+            if (ratioValue <= 0 || stages.some(s => s.weight <= 0 || s.targetFlow <= 0 || s.stopEarly < 0)) {
                 alert('请填写有效的方案参数（必须大于 0）');
                 return;
             }
@@ -1497,22 +1598,15 @@
             if (editingRecipeId) {
                 const index = recipes.findIndex(r => r.id === editingRecipeId);
                 if (index >= 0) {
-                    recipes[index] = { ...recipes[index], name, ratio, defaultCoffeeWeight: coffeeWeight, stages };
+                    recipes[index] = normalizeRecipe({ ...recipes[index], name, ratio: '1:' + ratioValue, stages });
                 }
             } else {
-                recipes.push({
-                    id: 'custom-' + Date.now(),
-                    name,
-                    ratio,
-                    defaultCoffeeWeight: coffeeWeight,
-                    stages
-                });
+                recipes.push(normalizeRecipe({ id: 'custom-' + Date.now(), name, ratio: '1:' + ratioValue, stages }));
             }
-
             saveRecipes();
             closeEditor();
             renderRecipePageList();
-            switchPage('recipe');
+            switchToPage('recipe');
         }
 
         function deleteRecipe() {
@@ -1523,12 +1617,9 @@
 
         function deleteRecipeDirect(id) {
             if (!confirm('确定删除此方案？')) return;
-
             recipes = recipes.filter(r => r.id !== id);
             if (currentRecipe && currentRecipe.id === id) {
-                if (recipes.length === 0) {
-                    recipes = cloneDefaults();
-                }
+                if (recipes.length === 0) recipes = cloneDefaults();
                 selectRecipe(recipes[0]);
             }
             saveRecipes();
@@ -1537,26 +1628,26 @@
 
         // ==================== 蓝牙连接 ====================
         async function connect() {
-            if (connected) {
-                disconnect();
-                return;
-            }
+            if (isConnecting) return;
+            if (connected) { disconnect(); return; }
 
+            isConnecting = true;
             try {
                 statusDot.classList.add('connecting');
-                deviceName.textContent = '扫描中...';
+                deviceNameEl.textContent = '扫描中...';
+                connectBtn.disabled = true;
 
                 device = await navigator.bluetooth.requestDevice({
                     filters: [{ namePrefix: 'TIMEMORE' }],
                     optionalServices: [SERVICE_UUID]
                 });
 
-                deviceName.textContent = '连接中...';
+                deviceNameEl.textContent = '连接中...';
                 device.addEventListener('gattserverdisconnected', onDisconnected);
 
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(r => setTimeout(r, 100));
                 server = await device.gatt.connect();
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise(r => setTimeout(r, 200));
 
                 const service = await server.getPrimaryService(SERVICE_UUID);
                 const [data, ctrl] = await Promise.all([
@@ -1573,41 +1664,98 @@
                 connected = true;
                 statusDot.classList.remove('connecting');
                 statusDot.classList.add('connected');
-                deviceName.textContent = device.name || 'TIMEMORE DOT';
+                deviceNameEl.textContent = device.name || 'TIMEMORE DOT';
                 connectBtn.textContent = '断开连接';
                 connectBtn.classList.add('connected');
+                connectBtn.disabled = false;
+
+                // 启用模式按钮
+                document.getElementById('scaleTareBtn').disabled = false;
+                document.getElementById('brewModeBtn').disabled = false;
+                document.getElementById('espressoModeBtn').disabled = false;
+                document.getElementById('espressoTareBtn').disabled = false;
+                document.getElementById('espressoMainBtn').disabled = false;
 
                 setState(STATES.WEIGHING);
 
             } catch (e) {
                 statusDot.classList.remove('connecting');
-                deviceName.textContent = '连接失败: ' + (e && e.message ? e.message : '未知错误');
+                deviceNameEl.textContent = '连接失败';
+                connectBtn.disabled = false;
                 console.error(e);
+                // 清理部分连接状态
+                if (device) {
+                    try { device.removeEventListener('gattserverdisconnected', onDisconnected); } catch(ex) {}
+                    try { if (device.gatt.connected) device.gatt.disconnect(); } catch(ex) {}
+                }
+                device = null; server = null; dataChar = null; ctrlChar = null;
+            } finally {
+                isConnecting = false;
             }
         }
 
-        function disconnect() {
-            if (device && device.gatt.connected) {
-                device.gatt.disconnect();
+        async function disconnect() {
+            if (!device) {
+                cleanupConnection();
+                return;
+            }
+            connectBtn.disabled = true;
+            deviceNameEl.textContent = '断开中...';
+            try {
+                if (dataChar) {
+                    try { await dataChar.stopNotifications(); } catch(e) {}
+                    try { dataChar.removeEventListener('characteristicvaluechanged', onData); } catch(e) {}
+                }
+                if (device.gatt.connected) {
+                    device.gatt.disconnect();
+                    // gattserverdisconnected 事件会触发 onDisconnected
+                    // 超时保护：3秒内未收到断开回调则强制清理
+                    setTimeout(() => {
+                        if (connected) {
+                            log('断开超时，强制清理');
+                            cleanupConnection();
+                        }
+                    }, 3000);
+                } else {
+                    cleanupConnection();
+                }
+            } catch (e) {
+                console.error('断开失败:', e);
+                cleanupConnection();
             }
         }
 
         function onDisconnected() {
+            cleanupConnection();
+        }
+
+        function cleanupConnection() {
             connected = false;
-            if (dataChar) dataChar.removeEventListener('characteristicvaluechanged', onData);
-            if (device) device.removeEventListener('gattserverdisconnected', onDisconnected);
-            dataChar = null;
-            ctrlChar = null;
-            server = null;
-            device = null;
-            statusDot.classList.remove('connected');
-            deviceName.textContent = '未连接';
+            isConnecting = false;
+            try { if (dataChar) dataChar.removeEventListener('characteristicvaluechanged', onData); } catch(e) {}
+            try { if (device) device.removeEventListener('gattserverdisconnected', onDisconnected); } catch(e) {}
+            dataChar = null; ctrlChar = null; server = null; device = null;
+
+            statusDot.classList.remove('connected', 'connecting');
+            deviceNameEl.textContent = '未连接';
             connectBtn.textContent = '连接电子秤';
             connectBtn.classList.remove('connected');
-            weightEl.textContent = '0.0';
+            connectBtn.disabled = false;
+
+            // 禁用模式按钮
+            document.getElementById('scaleTareBtn').disabled = true;
+            document.getElementById('brewModeBtn').disabled = true;
+            document.getElementById('espressoModeBtn').disabled = true;
+
+            scaleWeightEl.textContent = '0.0';
+            brewWeightEl.textContent = '0.0';
+
             resetBrew();
             resetEspresso();
             setState(STATES.IDLE);
+            if (currentPage === 'brew' || currentPage === 'espresso') {
+                switchToPage('scale');
+            }
         }
 
         // ==================== 数据处理 ====================
@@ -1633,56 +1781,56 @@
                 lastWeight = weight;
                 lastTime = now;
 
-                weightEl.textContent = weight.toFixed(1);
-                weightEl.classList.toggle('negative', weight < 0);
+                // 更新所有重量显示
+                scaleWeightEl.textContent = weight.toFixed(1);
+                brewWeightEl.textContent = weight.toFixed(1);
+                brewWeightEl.classList.toggle('negative', weight < 0);
 
-                // 更新意式咖啡页面重量显示
                 const espressoWeightEl = document.getElementById('espressoWeight');
-                if (espressoWeightEl) {
-                    espressoWeightEl.textContent = weight.toFixed(1);
-                }
+                if (espressoWeightEl) espressoWeightEl.textContent = weight.toFixed(1);
 
                 // 意式咖啡稳定检测
                 if (espressoState === ESPRESSO_STATES.BREWING) {
                     checkEspressoStable(weight);
                 }
 
-                // 在加粉状态下实时更新UI
+                // 在加粉状态下实时更新
                 if (currentState === STATES.ADD_POWDER) {
-                    guideSub.textContent = `当前粉重: ${weight.toFixed(1)}g`;
+                    guideSub.textContent = '\u5F53\u524D\u7C89\u91CD: ' + weight.toFixed(1) + 'g';
                     mainBtn.disabled = weight < 2;
-                    // 更新方案区域显示预计注水量
                     updateAddPowderRecipe(weight);
                 }
 
                 if (isRecording) {
-                    if (weight > maxRecordedWeight) {
-                        maxRecordedWeight = weight;
-                    }
+                    if (weight > maxRecordedWeight) maxRecordedWeight = weight;
 
-                    // 检测滤杯被拿走（阈值与粉量关联）
-                    const dropThreshold = Math.max(50, coffeeWeight * 0.3);
-                    if (maxRecordedWeight > dropThreshold && maxRecordedWeight - weight > dropThreshold) {
-                        lowWeightCount++;
-                        if (lowWeightCount >= 3) {
-                            finalWaterWeight = maxRecordedWeight;
-                            stopRecord();
-                            stopFlowBeep(); // 停止流速报警音
-                            // 截断数据，移除重量下降的部分
-                            // 从后往前找到重量开始下降的点
-                            let cutIndex = weightData.length;
-                            for (let i = weightData.length - 1; i >= 1; i--) {
-                                // 找到第一个重量比下一个点高的点（下降开始）
-                                if (weightData[i].weight > weightData[i-1].weight + 2) {
-                                    cutIndex = i;
-                                    break;
+                    // 检测滤杯移走：只有所有阶段都完成才能自动结束
+                    const allStagesCompleted = stageCompletedFlags.every(f => f === true);
+                    
+                    if (allStagesCompleted) {
+                        const dropThreshold = Math.max(50, coffeeWeight * 0.3);
+                        if (maxRecordedWeight > dropThreshold && maxRecordedWeight - weight > dropThreshold) {
+                            lowWeightCount++;
+                            if (lowWeightCount >= 3) {
+                                finalWaterWeight = maxRecordedWeight;
+                                stopRecord();
+                                stopFlowBeep();
+                                // 修复：截断数据时正确找到下降起始点
+                                let cutIndex = weightData.length;
+                                for (let i = weightData.length - 1; i >= 1; i--) {
+                                    if (weightData[i - 1].weight > weightData[i].weight + 2) {
+                                        cutIndex = i;
+                                        break;
+                                    }
                                 }
+                                weightData = weightData.slice(0, cutIndex);
+                                saveHistory();
+                                speak('冲煮结束');
+                                setState(STATES.END);
+                                return;
                             }
-                            weightData = weightData.slice(0, cutIndex);
-                            saveHistory();
-                            speak('冲煮结束');
-                            setState(STATES.END);
-                            return;
+                        } else {
+                            lowWeightCount = 0;
                         }
                     } else {
                         lowWeightCount = 0;
@@ -1690,14 +1838,12 @@
 
                     const elapsed = (now - recordStartTime) / 1000;
 
-                    // 数据验证：过滤异常的重量下降（蓝牙数据错误）
-                    // 冲煮过程中重量应该只增加或保持稳定，突然下降超过5g是异常数据
+                    // 数据验证：过滤异常的重量下降
                     if (weightData.length > 0) {
                         const lastData = weightData[weightData.length - 1];
                         const weightDrop = lastData.weight - weight;
                         if (weightDrop > 5) {
-                            // 忽略这个异常数据点，但更新时间避免流速计算失真
-                            log('忽略异常数据:', weight.toFixed(1), 'g, 上一个:', lastData.weight.toFixed(1), 'g');
+                            log('忽略异常数据:', weight.toFixed(1));
                             lastTime = now;
                             return;
                         }
@@ -1706,25 +1852,18 @@
                     weightData.push({ time: elapsed, weight, flow: smoothFlow });
                     if (weightData.length > 2400) weightData.shift();
 
-                    // 检查阶段完成
                     checkStageCompletion(weight);
-
-                    // 更新进度条
-                    updateProgressAnimation(weight);
+                    updateProgressBar(weight);
                 }
             }
         }
 
-        function checkStability(weight) {
-            // 简化稳定性检测
-        }
-
-        // 流速提醒定时器
+        // 流速提醒
         let flowBeepInterval = null;
         let lastFlowStatus = null;
-        let flowStatusStartTime = 0; // 状态开始时间
-        const FLOW_STATUS_DELAY = 200; // 持续0.2秒异常才报警
-        let currentBeepType = null; // 当前滴声类型
+        let flowStatusStartTime = 0;
+        const FLOW_STATUS_DELAY = 200;
+        let currentBeepType = null;
 
         function updateFlowStatus(flow) {
             if (flow > 20) return;
@@ -1741,45 +1880,29 @@
             const targetFlow = stage.targetFlow;
             const ratio = smoothFlow / targetFlow;
 
-            let newStatus = '';
-            let statusClass = '';
-            let beepInterval = 0; // 滴声间隔，毫秒
-            let beepType = null; // 滴声类型: 'low' 或 'high'
+            let newStatus = '', statusClass = '', beepInterval = 0, beepType = null;
 
             if (smoothFlow < 0.5) {
-                newStatus = '';
-                statusClass = '';
+                newStatus = ''; statusClass = '';
             } else if (ratio < 0.9) {
-                newStatus = '偏低';
-                statusClass = 'low';
-                beepInterval = 800; // 慢速嘟
-                beepType = 'low';
+                newStatus = '偏低'; statusClass = 'low'; beepInterval = 800; beepType = 'low';
             } else if (ratio <= 1.3) {
-                newStatus = '正常';
-                statusClass = 'normal';
+                newStatus = '正常'; statusClass = 'normal';
             } else if (ratio <= 1.5) {
-                newStatus = '偏快';
-                statusClass = 'high';
-                beepInterval = 400; // 中速滴
-                beepType = 'high';
+                newStatus = '偏快'; statusClass = 'high'; beepInterval = 400; beepType = 'high';
             } else {
-                newStatus = '过快';
-                statusClass = 'danger';
-                beepInterval = 200; // 快速滴
-                beepType = 'high';
+                newStatus = '过快'; statusClass = 'danger'; beepInterval = 200; beepType = 'high';
             }
 
             flowStatus.textContent = newStatus;
             flowStatus.className = 'flow-status ' + statusClass;
 
-            // 状态变化时重置计时
             if (statusClass !== lastFlowStatus) {
                 flowStatusStartTime = Date.now();
                 lastFlowStatus = statusClass;
                 stopFlowBeep();
             }
 
-            // 只有持续异常一段时间才报警
             if (beepInterval > 0 && Date.now() - flowStatusStartTime >= FLOW_STATUS_DELAY) {
                 if (!flowBeepInterval || currentBeepType !== beepType) {
                     stopFlowBeep();
@@ -1791,28 +1914,17 @@
 
         function startFlowBeep(interval, type) {
             if (flowBeepInterval) return;
-            playFlowBeep(type); // 立即响一声
-            flowBeepInterval = setInterval(() => {
-                playFlowBeep(type);
-            }, interval);
+            playFlowBeep(type);
+            flowBeepInterval = setInterval(() => playFlowBeep(type), interval);
         }
 
-        // 播放流速报警音：低速用嘟（低沉），高速用滴（尖锐）
         function playFlowBeep(type) {
-            if (type === 'low') {
-                // 嘟：低频长音（正弦波）
-                beep(300, 150, 'sine');
-            } else {
-                // 滴：高频短音（方波，像电子蜂鸣器）
-                beep(1500, 50, 'square');
-            }
+            if (type === 'low') beep(300, 150, 'sine');
+            else beep(1500, 50, 'square');
         }
 
         function stopFlowBeep() {
-            if (flowBeepInterval) {
-                clearInterval(flowBeepInterval);
-                flowBeepInterval = null;
-            }
+            if (flowBeepInterval) { clearInterval(flowBeepInterval); flowBeepInterval = null; }
         }
 
         // ==================== 状态机 ====================
@@ -1824,244 +1936,285 @@
         }
 
         function updateUI() {
-            tareBtn.disabled = !connected;
-
             switch (currentState) {
                 case STATES.IDLE:
                     guideIcon.textContent = '🔗';
                     guideText.textContent = '请连接电子秤';
-                    guideSub.textContent = '点击底部按钮开始连接';
+                    guideSub.textContent = '点击底部按钮连接';
                     mainBtn.disabled = true;
-                    mainBtn.textContent = '手冲咖啡';
+                    mainBtn.textContent = '开始冲煮';
+                    tareBtn.style.display = 'none';
                     document.getElementById('recipeSection').style.display = 'none';
-                    document.getElementById('stagesSection').style.display = 'none';
+                    document.getElementById('brewProgress').style.display = 'none';
                     document.getElementById('metricsSection').style.display = 'none';
                     document.getElementById('chartSection').style.display = 'none';
                     weightStatus.style.display = 'block';
                     break;
 
                 case STATES.WEIGHING:
-                    guideIcon.textContent = '⚖️';
-                    guideText.textContent = '称重模式';
-                    guideSub.textContent = '点击"手冲咖啡"开始';
-                    mainBtn.disabled = false;
-                    mainBtn.textContent = '手冲咖啡';
-                    document.getElementById('recipeSection').style.display = 'none';
-                    document.getElementById('stagesSection').style.display = 'none';
-                    document.getElementById('metricsSection').style.display = 'none';
-                    document.getElementById('chartSection').style.display = 'none';
-                    weightStatus.style.display = 'block';
-                    // 恢复去皮按钮
-                    tareBtn.textContent = '去皮';
-                    tareBtn.disabled = !connected;
+                    // 称重模式 — 此状态只在 scalePage 上有意义
                     break;
 
                 case STATES.ADD_POWDER:
                     guideIcon.textContent = '☕';
                     guideText.textContent = '请加入咖啡粉';
-                    guideSub.textContent = `当前粉重: ${currentWeight.toFixed(1)}g`;
+                    guideSub.textContent = '\u5F53\u524D\u7C89\u91CD: ' + currentWeight.toFixed(1) + 'g';
                     mainBtn.disabled = currentWeight < 2;
                     mainBtn.textContent = '开始冲煮';
+                    tareBtn.textContent = '取消';
+                    tareBtn.style.display = '';
+                    tareBtn.disabled = false;
                     document.getElementById('recipeSection').style.display = 'block';
-                    document.getElementById('stagesSection').style.display = 'none';
+                    document.getElementById('brewProgress').style.display = 'none';
                     document.getElementById('metricsSection').style.display = 'none';
                     document.getElementById('chartSection').style.display = 'none';
                     weightStatus.style.display = 'block';
-                    // 显示取消按钮
-                    tareBtn.textContent = '取消';
-                    tareBtn.disabled = false;
+                    break;
+
+                case STATES.CONFIGURED:
+                    guideIcon.textContent = '✅';
+                    guideText.textContent = '配置完成';
+                    guideSub.textContent = '准备进入倒计时';
+                    mainBtn.disabled = true;
+                    mainBtn.textContent = '准备中...';
+                    tareBtn.style.display = 'none';
+                    document.getElementById('recipeSection').style.display = 'block';
+                    document.getElementById('brewProgress').style.display = 'block';
+                    document.getElementById('metricsSection').style.display = 'flex';
+                    document.getElementById('chartSection').style.display = 'none';
+                    weightStatus.style.display = 'none';
                     break;
 
                 case STATES.COUNTDOWN:
                     guideIcon.textContent = '⏱️';
-                    guideText.textContent = `${countdown}`;
+                    guideText.textContent = '' + countdown;
                     guideSub.textContent = '';
                     mainBtn.disabled = true;
-                    mainBtn.textContent = `${countdown}...`;
+                    mainBtn.textContent = countdown + '...';
+                    tareBtn.style.display = 'none';
                     document.getElementById('recipeSection').style.display = 'block';
-                    document.getElementById('stagesSection').style.display = 'block';
+                    document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'none';
                     weightStatus.style.display = 'none';
-                    renderStagesTrack();
-                    // 倒计时阶段禁用按钮
-                    tareBtn.textContent = '去皮';
-                    tareBtn.disabled = true;
+                    renderProgressBar();
                     break;
 
                 case STATES.BREWING:
                     updateBrewingUI();
+                    tareBtn.style.display = 'none';
                     document.getElementById('recipeSection').style.display = 'block';
-                    document.getElementById('stagesSection').style.display = 'block';
+                    document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'block';
                     weightStatus.style.display = 'none';
-                    // 冲煮阶段禁用去皮按钮
-                    tareBtn.textContent = '去皮';
-                    tareBtn.disabled = true;
                     break;
 
                 case STATES.END:
                     guideIcon.textContent = '🎉';
                     guideText.textContent = '冲煮完成！';
-                    guideSub.textContent = `总注水量: ${finalWaterWeight.toFixed(0)}g`;
-                    weightEl.textContent = finalWaterWeight.toFixed(1);
+                    guideSub.textContent = '\u603B\u6CE8\u6C34\u91CF: ' + finalWaterWeight.toFixed(0) + 'g';
+                    brewWeightEl.textContent = finalWaterWeight.toFixed(1);
                     mainBtn.disabled = false;
                     mainBtn.textContent = '返回称重';
+                    tareBtn.style.display = 'none';
                     document.getElementById('recipeSection').style.display = 'block';
-                    document.getElementById('stagesSection').style.display = 'block';
+                    document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'block';
                     weightStatus.style.display = 'block';
-                    weightStatus.innerHTML = `<span style="color:#4ade80">总注水量 ${finalWaterWeight.toFixed(0)}g</span>`;
-                    // 完成阶段禁用去皮按钮
-                    tareBtn.textContent = '去皮';
-                    tareBtn.disabled = true;
+                    weightStatus.innerHTML = '<span style="color:#4ade80">\u603B\u6CE8\u6C34\u91CF ' + finalWaterWeight.toFixed(0) + 'g</span>';
                     break;
             }
         }
 
         function updateBrewingUI() {
             const stage = currentRecipe.stages[currentStageIndex];
-            const targetWeight = coffeeWeight * stage.multiplier;
+            const targetWater = stageTargets[currentStageIndex] || 0;
 
             if (stageCompletedFlags[currentStageIndex]) {
                 guideIcon.textContent = '⏳';
                 guideText.textContent = '等待滴滤完成';
                 if (currentStageIndex < currentRecipe.stages.length - 1) {
-                    guideSub.textContent = currentStageIndex === 0 ? '开始注水' : '再注水';
+                    guideSub.textContent = '继续注水';
                 } else {
-                    guideSub.textContent = '再拿走咖啡';
+                    guideSub.textContent = '拿走滤杯自动完成';
                 }
             } else {
                 guideIcon.textContent = '💧';
-                guideText.textContent = `阶段${currentStageIndex + 1}：注水至 ${targetWeight.toFixed(0)}g`;
+                guideText.textContent = '阶段' + (currentStageIndex + 1) + '：注水至 ' + targetWater.toFixed(0) + 'g';
                 guideSub.textContent = '';
             }
 
             mainBtn.disabled = false;
             mainBtn.textContent = '结束冲煮';
+
+            // 更新进度条信息
+            updateProgressInfo();
+        }
+
+        // ==================== 新版进度条 ====================
+        function renderProgressBar() {
+            if (!currentRecipe || !stageTargets.length) return;
+
+            const stages = currentRecipe.stages;
+            const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
+            const track = document.getElementById('progressTrack');
+            const labels = document.getElementById('progressLabels');
+
+            // 构建单一连续进度条，分段标记基于权重
+            let trackHTML = '<div class="progress-bar-fill active" id="progressBarFill" style="width:0%"></div>';
+            let labelsHTML = '';
+            let cumulativeWeight = 0;
+
+            stages.forEach((s, i) => {
+                const offset = (cumulativeWeight / totalWeight) * 100;
+                if (i > 0) {
+                    trackHTML += '<div class="progress-marker" style="left:' + offset + '%"></div>';
+                }
+                labelsHTML += '<div class="progress-label-item" id="pLabel' + i + '" style="left:' + offset + '%">' +
+                    (stageTargets[i] || 0).toFixed(0) + 'g</div>';
+                cumulativeWeight += s.weight;
+            });
+            labelsHTML += '<div class="progress-label-item" style="left:100%">' + (stageTargets[stageTargets.length - 1] || 0).toFixed(0) + 'g</div>';
+
+            track.innerHTML = trackHTML;
+            labels.innerHTML = labelsHTML;
+
+            updateProgressInfo();
+        }
+
+        function updateProgressInfo() {
+            if (currentStageIndex < 0 || !currentRecipe) return;
+            const stages = currentRecipe.stages;
+            const label = document.getElementById('progressStageLabel');
+            const target = document.getElementById('progressTargetLabel');
+            const currentTarget = stageTargets[currentStageIndex] || 0;
+            const currentAccum = stageWaterAccum[currentStageIndex] || 0;
+
+            if (stageCompletedFlags[currentStageIndex]) {
+                label.textContent = '✓ \u9636\u6BB5 ' + (currentStageIndex + 1) + '/' + stages.length;
+                target.textContent = '已完成';
+            } else {
+                label.textContent = '\u9636\u6BB5 ' + (currentStageIndex + 1) + '/' + stages.length;
+                target.textContent = currentAccum.toFixed(0) + ' / ' + currentTarget.toFixed(0) + 'g';
+            }
+        }
+
+        function updateProgressBar(weight) {
+            if (currentStageIndex < 0 || !currentRecipe) return;
+
+            const stages = currentRecipe.stages;
+            const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
+
+            // 计算累计进度（基于当前权重内的实际水量
+            let completedWeight = 0;
+            for (let i = 0; i <= currentStageIndex && i < stages.length; i++) {
+                if (i < currentStageIndex) {
+                    completedWeight += stages[i].weight;
+                } else if (i === currentStageIndex) {
+                    const targetWater = stageTargets[i] || 0;
+                    const currentWater = Math.max(0, Math.min(stageWaterAccum[i] || 0, targetWater));
+                    const ratio = targetWater > 0 ? (currentWater / targetWater) : 0;
+                    completedWeight += ratio * stages[i].weight;
+                }
+            }
+
+            const overallProgress = (completedWeight / totalWeight) * 100;
+            const fill = document.getElementById('progressBarFill');
+            if (fill) fill.style.width = Math.min(100, overallProgress) + '%';
+
+            // 更新标签样式
+            stages.forEach((s, i) => {
+                const labelEl = document.getElementById('pLabel' + i);
+                if (!labelEl) return;
+                if (i < currentStageIndex || stageCompletedFlags[i]) {
+                    labelEl.className = 'progress-label-item completed';
+                } else if (i === currentStageIndex) {
+                    labelEl.className = 'progress-label-item active';
+                } else {
+                    labelEl.className = 'progress-label-item';
+                }
+            });
+
+            updateProgressInfo();
         }
 
         function checkStageCompletion(weight) {
             if (currentStageIndex < 0 || currentStageIndex >= currentRecipe.stages.length) return;
 
             const stage = currentRecipe.stages[currentStageIndex];
-            const targetWeight = coffeeWeight * stage.multiplier;
+            const prevAccum = currentStageIndex > 0 ? 
+                stageTargets.slice(0, currentStageIndex).reduce((sum, v) => sum + v, 0) : 0;
+            const currentStageWater = weight - prevAccum;
+            const stageTarget = stageTargets[currentStageIndex] || 0;
+            const safeWater = Math.max(0, currentStageWater);
+            stageWaterAccum[currentStageIndex] = Math.min(safeWater, stageTarget);
 
-            // 只有当重量超过一定阈值（粉重的0.5倍）才开始检测，避免去皮后的波动误触发
-            const minThreshold = coffeeWeight * 0.5;
-            if (weight < minThreshold) return;
-
-            // 调试信息
-            log(`阶段检测: 粉重=${coffeeWeight}g, 目标=${targetWeight.toFixed(1)}g, 当前=${weight.toFixed(1)}g, 提前=${stage.stopEarly}g, 已完成=${stageCompletedFlags[currentStageIndex]}`);
-
-            if (!stageCompletedFlags[currentStageIndex] && weight >= targetWeight - stage.stopEarly) {
-                log('>>> 触发喊停！ <<<');
-                stageCompletedFlags[currentStageIndex] = true;
-                beep(800, 200);
+            const stopAt = Math.max(0, stageTarget - (stage.stopEarly || 0));
+            if (!stageStopNotified[currentStageIndex] && safeWater >= stopAt && stopAt > 0) {
+                stageStopNotified[currentStageIndex] = true;
+                beep(800, 150);
                 speak('停');
-                updateStageUI();
+            }
+
+            // 检查是否达到此阶段目标
+            if (!stageCompletedFlags[currentStageIndex] && safeWater >= stageTarget) {
+                stageCompletedFlags[currentStageIndex] = true;
+                updateProgressBar(weight);
                 updateUI();
-            }
-
-            // 检测进入下一阶段
-            if (stageCompletedFlags[currentStageIndex] && currentStageIndex < currentRecipe.stages.length - 1) {
-                if (weight > targetWeight + 5) {
-                    log(`>>> 切换到阶段 ${currentStageIndex + 2} <<<`);
+                
+                // 如果还有后续阶段，立即进入下一阶段
+                if (currentStageIndex < currentRecipe.stages.length - 1) {
                     currentStageIndex++;
-                    updateStageUI();
+                    stageWaterAccum[currentStageIndex] = 0;
+                    updateProgressBar(weight);
                     updateUI();
-                }
-            }
-        }
-
-        function updateProgressAnimation(weight) {
-            if (currentStageIndex < 0) return;
-
-            const stage = currentRecipe.stages[currentStageIndex];
-            const targetWeight = coffeeWeight * stage.multiplier;
-
-            const prevTarget = currentStageIndex > 0
-                ? coffeeWeight * currentRecipe.stages[currentStageIndex - 1].multiplier
-                : 0;
-
-            if (!stageCompletedFlags[currentStageIndex]) {
-                const progress = Math.min(100, Math.max(0, ((weight - prevTarget) / (targetWeight - prevTarget)) * 100));
-                const progressEl = document.getElementById(`progress${currentStageIndex}`);
-                if (progressEl) progressEl.style.width = progress + '%';
-            }
-        }
-
-        function renderStagesTrack() {
-            const track = document.getElementById('stagesTrack');
-            const stages = currentRecipe.stages;
-
-            let html = '<div class="stage-node"><div class="stage-circle completed" id="stage0">✓</div><span class="stage-label">加粉</span></div>';
-
-            stages.forEach((s, i) => {
-                const targetWeight = coffeeWeight * s.multiplier;
-                html += `
-                    <div class="stage-connector" id="conn${i}"><div class="stage-connector-progress" id="progress${i}"></div></div>
-                    <div class="stage-node">
-                        <div class="stage-circle" id="stage${i + 1}">${targetWeight.toFixed(0)}</div>
-                        <span class="stage-label">阶段${i + 1}</span>
-                    </div>
-                `;
-            });
-
-            track.innerHTML = html;
-        }
-
-        function updateStageUI() {
-            for (let i = 0; i < currentRecipe.stages.length; i++) {
-                const el = document.getElementById(`stage${i + 1}`);
-                const conn = document.getElementById(`conn${i}`);
-                const progress = document.getElementById(`progress${i}`);
-
-                if (stageCompletedFlags[i]) {
-                    el.classList.add('completed');
-                    el.classList.remove('active');
-                    el.textContent = '✓';
-                    if (conn) conn.classList.add('completed');
-                    if (progress) progress.style.width = '100%';
-                } else if (i === currentStageIndex) {
-                    el.classList.add('active');
-                    el.classList.remove('completed');
                 } else {
-                    el.classList.remove('completed', 'active');
+                    const fill = document.getElementById('progressBarFill');
+                    if (fill) fill.style.width = '100%';
                 }
+            } else if (!stageCompletedFlags[currentStageIndex]) {
+                // 更新当前阶段的累计水量显示
+                updateProgressBar(weight);
             }
         }
 
         // ==================== 操作处理 ====================
         async function handleMainAction() {
             switch (currentState) {
-                case STATES.WEIGHING:
-                    mainBtn.disabled = true;
-                    mainBtn.textContent = '准备中...';
-                    await sendTare();
-                    coffeeWeight = 0;
-                    currentWeight = 0;
-                    weightEl.textContent = '0.0';
-                    await delay(500);
-                    setState(STATES.ADD_POWDER);
-                    break;
-
                 case STATES.ADD_POWDER:
                     coffeeWeight = currentWeight;
+                    if (!currentRecipe || !currentRecipe.stages || currentRecipe.stages.length === 0) {
+                        alert('请先选择有效冲煮方案');
+                        return;
+                    }
+                    if (coffeeWeight < 2) {
+                        alert('请先加入咖啡粉');
+                        return;
+                    }
+                    stageTargets = computeStageTargets(coffeeWeight);
+                    if (!stageTargets.length || stageTargets.some(t => !(t > 0))) {
+                        alert('方案参数无效，无法启动冲煮');
+                        return;
+                    }
                     log('记录粉重:', coffeeWeight, 'g');
-                    await sendTare({ skipResetCoffeeWeight: true });
+                    setState(STATES.CONFIGURED);
+                    await sendTare();
                     currentWeight = 0;
-                    weightEl.textContent = '0.0';
+                    brewWeightEl.textContent = '0.0';
                     await delay(500);
                     startCountdown();
                     break;
 
                 case STATES.BREWING:
+                    if (!stageCompletedFlags.every(Boolean)) {
+                        alert('请完成全部注水阶段后再结束');
+                        return;
+                    }
                     finalWaterWeight = currentWeight;
                     stopRecord();
-                    stopFlowBeep(); // 停止流速报警音
+                    stopFlowBeep();
                     saveHistory();
                     setState(STATES.END);
                     break;
@@ -2069,11 +2222,16 @@
                 case STATES.END:
                     resetBrew();
                     setState(STATES.WEIGHING);
+                    switchToPage('scale');
                     break;
             }
         }
 
         function startCountdown() {
+            if (currentState !== STATES.CONFIGURED) {
+                alert('状态未配置完成，无法启动倒计时');
+                return;
+            }
             countdown = 3;
             setState(STATES.COUNTDOWN);
             speak('3');
@@ -2081,8 +2239,8 @@
             countdownInterval = setInterval(() => {
                 countdown--;
                 if (countdown > 0) {
-                    guideText.textContent = `${countdown}`;
-                    mainBtn.textContent = `${countdown}...`;
+                    guideText.textContent = '' + countdown;
+                    mainBtn.textContent = countdown + '...';
                     speak(countdown.toString());
                 } else {
                     clearInterval(countdownInterval);
@@ -2093,33 +2251,22 @@
             }, 1000);
         }
 
-        async function startBrew() {
-            // 不再去皮，因为在加粉阶段已经去皮了
-            // await sendTare();
-
+        function startBrew() {
+            if (!currentRecipe || !currentRecipe.stages || !stageTargets.length) {
+                alert('分段数据未初始化，无法开始冲煮');
+                setState(STATES.ADD_POWDER);
+                return;
+            }
             currentStageIndex = 0;
             stageCompletedFlags = new Array(currentRecipe.stages.length).fill(false);
-
-            // 重置记录状态
+            stageWaterAccum = new Array(currentRecipe.stages.length).fill(0);
+            stageStopNotified = new Array(currentRecipe.stages.length).fill(false);
+            recipeConfigured = true;
             maxRecordedWeight = 0;
             lowWeightCount = 0;
             currentWeight = 0;
 
-            log('开始冲煮:', {
-                recipe: currentRecipe.name,
-                coffeeWeight: coffeeWeight,
-                stages: currentRecipe.stages.map(s => ({
-                    multiplier: s.multiplier,
-                    targetWeight: coffeeWeight * s.multiplier,
-                    stopEarly: s.stopEarly
-                }))
-            });
-
-            renderStagesTrack();
-
-            // 标记加粉完成
-            document.getElementById('stage0').classList.add('completed');
-
+            renderProgressBar();
             isRecording = true;
             recordStartTime = Date.now();
             weightData = [];
@@ -2134,19 +2281,13 @@
 
         function stopRecord() {
             isRecording = false;
-            if (recordInterval) {
-                clearInterval(recordInterval);
-                recordInterval = null;
-            }
+            if (recordInterval) { clearInterval(recordInterval); recordInterval = null; }
         }
 
         function resetBrew() {
             stopRecord();
             stopFlowBeep();
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
             countdown = 0;
             weightData = [];
             smoothFlow = 0;
@@ -2157,6 +2298,10 @@
             finalWaterWeight = 0;
             currentStageIndex = -1;
             stageCompletedFlags = [];
+            stageWaterAccum = [];
+            stageTargets = [];
+            stageStopNotified = [];
+            recipeConfigured = false;
             coffeeWeight = 0;
             timerEl.textContent = '00:00';
             flowEl.textContent = '0.0';
@@ -2168,18 +2313,10 @@
             drawChart();
         }
 
-        async function sendTare(options = {}) {
-            const { skipResetCoffeeWeight } = options;
+        async function sendTare() {
             if (!ctrlChar) return;
             try {
                 await ctrlChar.writeValueWithoutResponse(TARE_CMD);
-                if (!skipResetCoffeeWeight && currentState === STATES.ADD_POWDER) {
-                    coffeeWeight = 0;
-                    currentWeight = 0;
-                    weightEl.textContent = '0.0';
-                    guideSub.textContent = '当前粉重: 0.0g';
-                    mainBtn.disabled = true;
-                }
             } catch (e) {
                 console.error('去皮失败', e);
             }
@@ -2187,12 +2324,9 @@
 
         function handleTareAction() {
             if (currentState === STATES.ADD_POWDER) {
-                // 取消加粉，返回称重模式
                 resetBrew();
                 setState(STATES.WEIGHING);
-            } else {
-                // 正常去皮
-                sendTare();
+                switchToPage('scale');
             }
         }
 
@@ -2200,12 +2334,10 @@
             const elapsed = Math.floor((Date.now() - recordStartTime) / 1000);
             const m = Math.floor(elapsed / 60);
             const s = elapsed % 60;
-            timerEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            timerEl.textContent = m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
         }
 
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
+        function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
         // ==================== 曲线绘制 ====================
         function drawChart() {
@@ -2215,7 +2347,6 @@
             ctx.fillStyle = '#0d0d0d';
             ctx.fillRect(0, 0, w, h);
 
-            // 时间刻度
             ctx.fillStyle = '#444';
             ctx.font = '9px sans-serif';
             ctx.textAlign = 'center';
@@ -2248,60 +2379,54 @@
         function formatTime(seconds) {
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
-            if (m > 0) return `${m}'${s.toString().padStart(2, '0')}`;
-            return `${s}s`;
+            if (m > 0) return m + "'" + s.toString().padStart(2, '0');
+            return s + 's';
         }
 
         // ==================== 语音和声音 ====================
         let audioCtx = null;
 
         function getAudioCtx() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             return audioCtx;
         }
 
         function speak(text) {
             if ('speechSynthesis' in window) {
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'zh-CN';
-                utterance.rate = 1.2;
-                speechSynthesis.speak(utterance);
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'zh-CN';
+                u.rate = 1.2;
+                speechSynthesis.speak(u);
             }
         }
 
-        function beep(frequency = 800, duration = 150, type = 'sine') {
-            const ctx = getAudioCtx();
-            const oscillator = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(ctx.destination);
-
-            oscillator.frequency.value = frequency;
-            oscillator.type = type;
-
-            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration / 1000);
-
-            oscillator.start(ctx.currentTime);
-            oscillator.stop(ctx.currentTime + duration / 1000);
+        function beep(frequency, duration, type) {
+            type = type || 'sine';
+            const c = getAudioCtx();
+            const osc = c.createOscillator();
+            const gain = c.createGain();
+            osc.connect(gain);
+            gain.connect(c.destination);
+            osc.frequency.value = frequency;
+            osc.type = type;
+            gain.gain.setValueAtTime(0.3, c.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, c.currentTime + duration / 1000);
+            osc.start(c.currentTime);
+            osc.stop(c.currentTime + duration / 1000);
         }
 
         // ==================== 历史 ====================
         function saveHistory() {
-            const finalWeight = Math.max(finalWaterWeight, maxRecordedWeight, currentWeight, 0);
+            const fw = Math.max(finalWaterWeight, maxRecordedWeight, currentWeight, 0);
             const record = {
                 id: Date.now(),
                 date: new Date().toISOString(),
                 recipe: currentRecipe ? currentRecipe.name : '',
                 coffeeWeight,
-                maxWeight: finalWeight,
+                maxWeight: fw,
                 duration: weightData.length > 0 ? weightData[weightData.length - 1].time : 0,
-                data: [...weightData] // 保存完整数据用于查看详情
+                data: [...weightData]
             };
-
             history.unshift(record);
             if (history.length > 30) history.pop();
             localStorage.setItem('brewHistory', JSON.stringify(history));
@@ -2313,27 +2438,26 @@
                 list.innerHTML = '<p style="color:#555;text-align:center;padding:40px;">暂无冲煮记录</p>';
                 return;
             }
-
-            list.innerHTML = history.map((r, i) => `
-                <div class="history-item" onclick="showHistoryDetail(${i})">
-                    <div class="history-header">
-                        <span class="history-recipe">${r.recipe || '自定义冲煮'}</span>
-                        <span class="history-time">${formatHistoryTime(r.date)}</span>
-                    </div>
-                    <div class="history-summary">
-                        <span>粉重 <span class="value">${(Number(r.coffeeWeight) || 0).toFixed(1)}g</span></span>
-                        <span>注水 <span class="value">${(Number(r.maxWeight) || 0).toFixed(0)}g</span></span>
-                        <span>时长 <span class="value">${formatDuration(Number(r.duration) || 0)}</span></span>
-                    </div>
-                </div>
-            `).join('');
+            list.innerHTML = history.map((r, i) => {
+                const cw = (Number(r.coffeeWeight) || 0).toFixed(1);
+                const mw = (Number(r.maxWeight) || 0).toFixed(0);
+                const dur = formatDuration(Number(r.duration) || 0);
+                const typeLabel = r.type === 'espresso' ? '☕ ' : '';
+                return '<div class="history-item" onclick="showHistoryDetail(' + i + ')">' +
+                    '<div class="history-header">' +
+                    '<span class="history-recipe">' + typeLabel + (r.recipe || '自定义冲煮') + '</span>' +
+                    '<span class="history-time">' + formatHistoryTime(r.date) + '</span></div>' +
+                    '<div class="history-summary">' +
+                    (r.type !== 'espresso' ? '<span>\u7C89\u91CD <span class="value">' + cw + 'g</span></span>' : '') +
+                    '<span>\u6DB2\u91CD <span class="value">' + mw + 'g</span></span>' +
+                    '<span>\u65F6\u957F <span class="value">' + dur + '</span></span>' +
+                    '</div></div>';
+            }).join('');
         }
 
         function formatHistoryTime(dateStr) {
             const d = new Date(dateStr);
-            const now = new Date();
-            const diff = now - d;
-
+            const diff = Date.now() - d;
             if (diff < 60000) return '刚刚';
             if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
             if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
@@ -2344,45 +2468,38 @@
         function formatDuration(seconds) {
             const m = Math.floor(seconds / 60);
             const s = Math.floor(seconds % 60);
-            return `${m}:${s.toString().padStart(2, '0')}`;
+            return m + ':' + s.toString().padStart(2, '0');
         }
 
         function showHistoryDetail(index) {
             currentHistoryIndex = index;
-            const record = history[index];
-            if (!record) return;
+            const r = history[index];
+            if (!r) return;
 
-            document.getElementById('historyDetailTitle').textContent = record.recipe || '冲煮详情';
+            document.getElementById('historyDetailTitle').textContent = r.recipe || '冲煮详情';
 
-            // 计算平均流速
             let avgFlow = 0;
-            if (record.data && record.data.length > 0) {
-                const flows = record.data.filter(d => d.flow > 0).map(d => d.flow);
+            if (r.data && r.data.length > 0) {
+                const flows = r.data.filter(d => d.flow > 0).map(d => d.flow);
                 avgFlow = flows.length > 0 ? flows.reduce((a, b) => a + b, 0) / flows.length : 0;
             }
 
-            document.getElementById('historyDetailStats').innerHTML = `
-                <div class="detail-stat">
-                    <div class="detail-stat-label">咖啡粉重</div>
-                    <div class="detail-stat-value green">${(Number(record.coffeeWeight) || 0).toFixed(1)}g</div>
-                </div>
-                <div class="detail-stat">
-                    <div class="detail-stat-label">总注水量</div>
-                    <div class="detail-stat-value">${(Number(record.maxWeight) || 0).toFixed(1)}g</div>
-                </div>
-                <div class="detail-stat">
-                    <div class="detail-stat-label">冲煮时长</div>
-                    <div class="detail-stat-value">${formatDuration(Number(record.duration) || 0)}</div>
-                </div>
-                <div class="detail-stat">
-                    <div class="detail-stat-label">平均流速</div>
-                    <div class="detail-stat-value">${avgFlow.toFixed(1)}g/s</div>
-                </div>
-            `;
+            const cw = (Number(r.coffeeWeight) || 0).toFixed(1);
+            const mw = (Number(r.maxWeight) || 0).toFixed(1);
+            const dur = formatDuration(Number(r.duration) || 0);
 
-            // 绘制历史曲线
-            drawHistoryChart(record.data || []);
+            let statsHTML = '';
+            if (r.type !== 'espresso') {
+                statsHTML += '<div class="detail-stat"><div class="detail-stat-label">\u5496\u5561\u7C89\u91CD</div><div class="detail-stat-value green">' + cw + 'g</div></div>';
+            }
+            statsHTML += '<div class="detail-stat"><div class="detail-stat-label">\u51FA\u6DB2\u91CD\u91CF</div><div class="detail-stat-value">' + mw + 'g</div></div>';
+            statsHTML += '<div class="detail-stat"><div class="detail-stat-label">\u65F6\u957F</div><div class="detail-stat-value">' + dur + '</div></div>';
+            if (r.type !== 'espresso') {
+                statsHTML += '<div class="detail-stat"><div class="detail-stat-label">\u5E73\u5747\u6D41\u901F</div><div class="detail-stat-value">' + avgFlow.toFixed(1) + 'g/s</div></div>';
+            }
 
+            document.getElementById('historyDetailStats').innerHTML = statsHTML;
+            drawHistoryChart(r.data || []);
             document.getElementById('historyDetailModal').classList.add('show');
         }
 
@@ -2393,7 +2510,6 @@
         function deleteHistoryRecord() {
             if (currentHistoryIndex < 0 || currentHistoryIndex >= history.length) return;
             if (!confirm('确定删除此记录？')) return;
-
             history.splice(currentHistoryIndex, 1);
             localStorage.setItem('brewHistory', JSON.stringify(history));
             closeHistoryDetail();
@@ -2403,42 +2519,38 @@
         function clearAllHistory() {
             if (history.length === 0) return;
             if (!confirm('确定清空所有历史记录？')) return;
-
             history = [];
             localStorage.setItem('brewHistory', JSON.stringify(history));
             renderHistory();
         }
 
         function drawHistoryChart(data) {
-            const canvas = historyCanvas;
-            const ctx = historyCtx;
-            const rect = canvas.parentElement.getBoundingClientRect();
-            canvas.width = rect.width - 16;
-            canvas.height = 120;
+            const c = historyCanvas;
+            const cx = historyCtx;
+            const rect = c.parentElement.getBoundingClientRect();
+            c.width = rect.width - 16;
+            c.height = 120;
 
-            const w = canvas.width;
-            const h = canvas.height;
-
-            ctx.fillStyle = '#0d0d0d';
-            ctx.fillRect(0, 0, w, h);
+            const w = c.width, h = c.height;
+            cx.fillStyle = '#0d0d0d';
+            cx.fillRect(0, 0, w, h);
 
             if (data.length < 2) {
-                ctx.fillStyle = '#555';
-                ctx.font = '12px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('无数据', w / 2, h / 2);
+                cx.fillStyle = '#555';
+                cx.font = '12px sans-serif';
+                cx.textAlign = 'center';
+                cx.fillText('无数据', w / 2, h / 2);
                 return;
             }
 
-            // 时间刻度
-            ctx.fillStyle = '#444';
-            ctx.font = '9px sans-serif';
-            ctx.textAlign = 'center';
+            cx.fillStyle = '#444';
+            cx.font = '9px sans-serif';
+            cx.textAlign = 'center';
 
             const maxTime = Math.max(...data.map(d => d.time), 60);
             for (let t = 0; t <= maxTime; t += 30) {
                 const x = (t / maxTime) * w;
-                ctx.fillText(formatTime(t), x, h - 2);
+                cx.fillText(formatTime(t), x, h - 2);
             }
 
             const weights = data.map(d => d.weight);
@@ -2446,88 +2558,60 @@
             const minW = Math.min(...weights, 0);
             const rangeW = maxW - minW + 20;
 
-            ctx.strokeStyle = '#4ade80';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
+            cx.strokeStyle = '#4ade80';
+            cx.lineWidth = 2;
+            cx.beginPath();
             data.forEach((d, i) => {
                 const x = (d.time / maxTime) * w;
                 const y = h - ((d.weight - minW + 10) / rangeW) * (h - 16) * 0.9 - 14;
-                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
             });
-            ctx.stroke();
+            cx.stroke();
         }
 
-        // 点击弹窗外部关闭
-        document.getElementById('editorModal').addEventListener('click', function(e) {
-            if (e.target === this) closeEditor();
-        });
-        document.getElementById('historyDetailModal').addEventListener('click', function(e) {
-            if (e.target === this) closeHistoryDetail();
-        });
+        // 弹窗外部点击关闭
+        document.getElementById('editorModal').addEventListener('click', function(e) { if (e.target === this) closeEditor(); });
+        document.getElementById('historyDetailModal').addEventListener('click', function(e) { if (e.target === this) closeHistoryDetail(); });
 
-        // ==================== 意式咖啡 ====================
-        function updateEspressoTarget() {
-            const dose = parseFloat(document.getElementById('espressoDoseWeight').value) || 18;
-            const ratio = parseFloat(document.getElementById('espressoRatio').value) || 2;
-            document.getElementById('espressoTargetWeight').textContent = (dose * ratio).toFixed(0);
-        }
+        // ==================== 意式咖啡（简化版） ====================
+        let espressoCountdown = 0;
+        let espressoCountdownInterval = null;
 
         function updateEspressoUI() {
-            const espressoStatusDot = document.getElementById('espressoStatusDot');
-            const espressoDeviceName = document.getElementById('espressoDeviceName');
-            const espressoConnectBtn = document.getElementById('espressoConnectBtn');
             const espressoTareBtn = document.getElementById('espressoTareBtn');
             const espressoMainBtn = document.getElementById('espressoMainBtn');
             const espressoGuideIcon = document.getElementById('espressoGuideIcon');
             const espressoGuideText = document.getElementById('espressoGuideText');
             const espressoGuideSub = document.getElementById('espressoGuideSub');
-            const espressoParams = document.getElementById('espressoParams');
             const espressoTimerSection = document.getElementById('espressoTimerSection');
             const espressoWeightStatus = document.getElementById('espressoWeightStatus');
 
-            // 同步连接状态
-            if (connected) {
-                espressoStatusDot.classList.add('connected');
-                espressoDeviceName.textContent = device ? device.name : 'TIMEMORE DOT';
-                espressoConnectBtn.textContent = '断开连接';
-                espressoConnectBtn.classList.add('connected');
-            } else {
-                espressoStatusDot.classList.remove('connected');
-                espressoDeviceName.textContent = '未连接';
-                espressoConnectBtn.textContent = '连接电子秤';
-                espressoConnectBtn.classList.remove('connected');
-            }
-
             switch (espressoState) {
                 case ESPRESSO_STATES.IDLE:
-                    espressoGuideIcon.textContent = '🫖';
+                    espressoGuideIcon.textContent = '☕';
                     espressoGuideText.textContent = '意式浓缩';
-                    espressoGuideSub.textContent = '设置参数后开始';
-                    espressoParams.style.display = 'block';
+                    espressoGuideSub.textContent = '按下开始，记录萃取时长和出液重量';
                     espressoTimerSection.style.display = 'none';
                     espressoTareBtn.disabled = !connected;
                     espressoMainBtn.disabled = !connected;
                     espressoMainBtn.textContent = '开始萃取';
                     espressoWeightStatus.innerHTML = '<span>--</span>';
-                    updateEspressoTarget();
                     break;
 
                 case ESPRESSO_STATES.COUNTDOWN:
                     espressoGuideIcon.textContent = '⏱️';
-                    espressoGuideText.textContent = `${espressoCountdown}`;
+                    espressoGuideText.textContent = '' + espressoCountdown;
                     espressoGuideSub.textContent = '';
-                    espressoParams.style.display = 'none';
                     espressoTimerSection.style.display = 'none';
                     espressoTareBtn.disabled = true;
                     espressoMainBtn.disabled = true;
-                    espressoMainBtn.textContent = `${espressoCountdown}...`;
+                    espressoMainBtn.textContent = espressoCountdown + '...';
                     break;
 
                 case ESPRESSO_STATES.BREWING:
                     espressoGuideIcon.textContent = '💧';
                     espressoGuideText.textContent = '萃取中';
-                    espressoGuideSub.textContent = `目标: ${(espressoDoseWeight * espressoRatio).toFixed(0)}g`;
-                    espressoParams.style.display = 'none';
+                    espressoGuideSub.textContent = '';
                     espressoTimerSection.style.display = 'block';
                     espressoTareBtn.disabled = true;
                     espressoMainBtn.disabled = false;
@@ -2537,33 +2621,25 @@
                 case ESPRESSO_STATES.END:
                     espressoGuideIcon.textContent = '🎉';
                     espressoGuideText.textContent = '萃取完成！';
-                    espressoGuideSub.textContent = `液重: ${espressoFinalWeight.toFixed(1)}g`;
-                    espressoParams.style.display = 'none';
+                    espressoGuideSub.textContent = '\u6DB2\u91CD: ' + espressoFinalWeight.toFixed(1) + 'g \xB7 \u65F6\u957F: ' + espressoFinalTime.toFixed(1) + 's';
                     espressoTimerSection.style.display = 'block';
                     espressoTareBtn.disabled = true;
                     espressoMainBtn.disabled = false;
                     espressoMainBtn.textContent = '返回';
-                    espressoWeightStatus.innerHTML = `<span style="color:#4ade80">萃取完成 ${espressoFinalWeight.toFixed(1)}g</span>`;
+                    espressoWeightStatus.innerHTML = '<span style="color:#f59e0b">\u8403\u53D6\u5B8C\u6210 ' + espressoFinalWeight.toFixed(1) + 'g</span>';
                     break;
             }
         }
 
-        let espressoCountdown = 0;
-        let espressoCountdownInterval = null;
-
         async function handleEspressoAction() {
             switch (espressoState) {
                 case ESPRESSO_STATES.IDLE:
-                    espressoDoseWeight = parseFloat(document.getElementById('espressoDoseWeight').value) || 18;
-                    espressoRatio = parseFloat(document.getElementById('espressoRatio').value) || 2;
                     await sendTare();
                     startEspressoCountdown();
                     break;
-
                 case ESPRESSO_STATES.BREWING:
                     endEspresso();
                     break;
-
                 case ESPRESSO_STATES.END:
                     resetEspresso();
                     break;
@@ -2579,8 +2655,8 @@
             espressoCountdownInterval = setInterval(() => {
                 espressoCountdown--;
                 if (espressoCountdown > 0) {
-                    document.getElementById('espressoGuideText').textContent = `${espressoCountdown}`;
-                    document.getElementById('espressoMainBtn').textContent = `${espressoCountdown}...`;
+                    document.getElementById('espressoGuideText').textContent = '' + espressoCountdown;
+                    document.getElementById('espressoMainBtn').textContent = espressoCountdown + '...';
                     speak(espressoCountdown.toString());
                 } else {
                     clearInterval(espressoCountdownInterval);
@@ -2594,93 +2670,81 @@
         function startEspresso() {
             espressoState = ESPRESSO_STATES.BREWING;
             espressoStartTime = Date.now();
-            espressoStableWeight = 0;
+            espressoStableWeight = -999; // 修复：初始化为无效值，避免0g时误判稳定
             espressoStableTime = 0;
             espressoFinalWeight = 0;
-
             updateEspressoUI();
 
             espressoInterval = setInterval(() => {
-                updateEspressoTimer();
+                const elapsed = (Date.now() - espressoStartTime) / 1000;
+                const effective = Math.max(0, elapsed - ESPRESSO_PREINFUSION);
+                document.getElementById('espressoTimer').textContent = effective.toFixed(1);
             }, 100);
         }
 
-        function updateEspressoTimer() {
-            const elapsed = (Date.now() - espressoStartTime) / 1000;
-            document.getElementById('espressoTimer').textContent = elapsed.toFixed(1);
-        }
-
         function endEspresso() {
-            if (espressoInterval) {
-                clearInterval(espressoInterval);
-                espressoInterval = null;
-            }
+            if (espressoInterval) { clearInterval(espressoInterval); espressoInterval = null; }
             espressoFinalWeight = currentWeight;
+            espressoFinalTime = Math.max(0, (Date.now() - espressoStartTime) / 1000 - ESPRESSO_PREINFUSION);
+            document.getElementById('espressoTimer').textContent = espressoFinalTime.toFixed(1);
             espressoState = ESPRESSO_STATES.END;
             beep(800, 200);
             speak('完成');
             updateEspressoUI();
-
-            // 保存历史
             saveEspressoHistory();
         }
 
         function resetEspresso() {
+            if (espressoInterval) { clearInterval(espressoInterval); espressoInterval = null; }
+            // 修复：断开连接时也清除倒计时
+            if (espressoCountdownInterval) { clearInterval(espressoCountdownInterval); espressoCountdownInterval = null; }
             espressoState = ESPRESSO_STATES.IDLE;
-            espressoStableWeight = 0;
+            espressoStableWeight = -999;
             espressoStableTime = 0;
             espressoFinalWeight = 0;
+            espressoFinalTime = 0;
             document.getElementById('espressoWeight').textContent = '0.0';
             document.getElementById('espressoTimer').textContent = '00.0';
             updateEspressoUI();
         }
 
         function saveEspressoHistory() {
-            const elapsed = (Date.now() - espressoStartTime) / 1000;
             const record = {
                 id: Date.now(),
                 date: new Date().toISOString(),
                 recipe: '意式浓缩',
                 type: 'espresso',
-                coffeeWeight: espressoDoseWeight,
+                coffeeWeight: 0,
                 maxWeight: espressoFinalWeight,
-                ratio: espressoRatio,
-                duration: elapsed
+                duration: espressoFinalTime
             };
-
             history.unshift(record);
             if (history.length > 30) history.pop();
             localStorage.setItem('brewHistory', JSON.stringify(history));
         }
 
-        // 意式咖啡稳定检测（在 onData 中调用）
+        // 修复：意式咖啡稳定检测加入最低重量阈值
         function checkEspressoStable(weight) {
             if (espressoState !== ESPRESSO_STATES.BREWING) return;
+            // 至少要有2g液重才开始检测稳定性，避免空杯时误判
+            if (weight < 2) return;
 
             const now = Date.now();
 
-            // 检测重量稳定（波动不超过1g）
             if (Math.abs(weight - espressoStableWeight) <= 1) {
                 if (espressoStableTime === 0) {
                     espressoStableTime = now;
                     espressoStableWeight = weight;
                 } else if (now - espressoStableTime >= 5000) {
-                    // 连续5秒稳定，自动结束
-                    log('意式咖啡稳定检测: 5秒稳定，自动结束');
                     endEspresso();
                 }
             } else {
-                // 重量变化超过1g，重置计时
                 espressoStableTime = now;
                 espressoStableWeight = weight;
             }
         }
 
-        // 监听输入变化
-        document.getElementById('espressoDoseWeight').addEventListener('input', updateEspressoTarget);
-        document.getElementById('espressoRatio').addEventListener('input', updateEspressoTarget);
-
-        // 启动
+        // ==================== 启动 ====================
         init();
     </script>
 </body>
