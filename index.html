@@ -640,6 +640,81 @@
             margin-top: 8px;
         }
 
+        /* 意式咖啡页面 */
+        .espresso-params {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .espresso-param-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .espresso-param {
+            flex: 1;
+            text-align: center;
+        }
+
+        .espresso-param-label {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .espresso-param-input {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .espresso-param-input input {
+            width: 60px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 8px;
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .espresso-target {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+            color: #4ade80;
+        }
+
+        .espresso-timer-section {
+            text-align: center;
+            padding: 16px 0;
+        }
+
+        .espresso-timer {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .espresso-timer-value {
+            font-size: 48px;
+            font-weight: 200;
+            font-family: 'SF Mono', 'Courier New', monospace;
+            color: #f59e0b;
+        }
+
+        .espresso-timer-unit {
+            font-size: 16px;
+            color: #666;
+        }
+
         /* 导出页面 */
         .export-page-content {
             flex: 1;
@@ -928,7 +1003,11 @@
     <div class="nav-bar">
         <div class="nav-item active" id="navBrew" onclick="switchPage('brew')">
             <span class="nav-icon">☕</span>
-            <span>冲煮</span>
+            <span>手冲</span>
+        </div>
+        <div class="nav-item" id="navEspresso" onclick="switchPage('espresso')">
+            <span class="nav-icon">🫖</span>
+            <span>意式</span>
         </div>
         <div class="nav-item" id="navRecipe" onclick="switchPage('recipe')">
             <span class="nav-icon">📋</span>
@@ -937,6 +1016,76 @@
         <div class="nav-item" id="navHistory" onclick="switchPage('history')">
             <span class="nav-icon">📜</span>
             <span>历史</span>
+        </div>
+    </div>
+
+    <!-- 意式咖啡页面 -->
+    <div class="page" id="espressoPage">
+        <div class="header">
+            <div class="device-status">
+                <div class="status-dot" id="espressoStatusDot"></div>
+                <span class="device-name" id="espressoDeviceName">未连接</span>
+            </div>
+        </div>
+        <div class="main">
+            <div class="guide-section">
+                <div class="guide-row">
+                    <span class="guide-icon" id="espressoGuideIcon">🫖</span>
+                    <span class="guide-text" id="espressoGuideText">意式浓缩</span>
+                </div>
+                <div class="guide-sub" id="espressoGuideSub">设置参数后开始</div>
+            </div>
+
+            <!-- 参数设置 -->
+            <div class="espresso-params" id="espressoParams">
+                <div class="espresso-param-row">
+                    <div class="espresso-param">
+                        <div class="espresso-param-label">咖啡粉重</div>
+                        <div class="espresso-param-input">
+                            <input type="number" id="espressoDoseWeight" value="18" step="0.5"> g
+                        </div>
+                    </div>
+                    <div class="espresso-param">
+                        <div class="espresso-param-label">粉水比</div>
+                        <div class="espresso-param-input">
+                            1 : <input type="number" id="espressoRatio" value="2" step="0.5">
+                        </div>
+                    </div>
+                </div>
+                <div class="espresso-target">
+                    目标液重: <span id="espressoTargetWeight">36</span> g
+                </div>
+            </div>
+
+            <!-- 重量显示 -->
+            <div class="weight-display">
+                <div class="weight-row">
+                    <span class="weight-value" id="espressoWeight">0.0</span>
+                    <span class="weight-unit">g</span>
+                </div>
+                <div class="weight-status" id="espressoWeightStatus">
+                    <span>--</span>
+                </div>
+            </div>
+
+            <!-- 时间显示 -->
+            <div class="espresso-timer-section" id="espressoTimerSection" style="display:none;">
+                <div class="espresso-timer">
+                    <span class="espresso-timer-value" id="espressoTimer">00.0</span>
+                    <span class="espresso-timer-unit">秒</span>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="actions">
+                <button class="btn btn-tare" id="espressoTareBtn" onclick="sendTare()" disabled>去皮</button>
+                <button class="btn btn-primary" id="espressoMainBtn" onclick="handleEspressoAction()" disabled>开始萃取</button>
+            </div>
+        </div>
+
+        <!-- 底部连接栏 -->
+        <div style="position: fixed; bottom: 56px; left: 0; right: 0; padding: 12px; background: linear-gradient(to top, #0d0d0d 80%, transparent);">
+            <button class="btn-connect" id="espressoConnectBtn" onclick="connect()">连接电子秤</button>
         </div>
     </div>
 
@@ -998,6 +1147,23 @@
             [STATES.BREWING]: '冲煮',
             [STATES.END]: '完成'
         };
+
+        // ==================== 意式咖啡状态 ====================
+        const ESPRESSO_STATES = {
+            IDLE: 'idle',
+            COUNTDOWN: 'countdown',
+            BREWING: 'brewing',
+            END: 'end'
+        };
+
+        let espressoState = ESPRESSO_STATES.IDLE;
+        let espressoDoseWeight = 18;
+        let espressoRatio = 2;
+        let espressoStartTime = 0;
+        let espressoInterval = null;
+        let espressoStableWeight = 0;
+        let espressoStableTime = 0;
+        let espressoFinalWeight = 0;
 
         // ==================== 全局变量 ====================
         let device = null, server = null, dataChar = null, ctrlChar = null;
@@ -1118,6 +1284,11 @@
                 case 'brew':
                     document.getElementById('brewPage').classList.add('active');
                     document.getElementById('navBrew').classList.add('active');
+                    break;
+                case 'espresso':
+                    document.getElementById('espressoPage').classList.add('active');
+                    document.getElementById('navEspresso').classList.add('active');
+                    updateEspressoUI();
                     break;
                 case 'recipe':
                     document.getElementById('recipePage').classList.add('active');
@@ -1435,6 +1606,7 @@
             connectBtn.classList.remove('connected');
             weightEl.textContent = '0.0';
             resetBrew();
+            resetEspresso();
             setState(STATES.IDLE);
         }
 
@@ -1463,6 +1635,17 @@
 
                 weightEl.textContent = weight.toFixed(1);
                 weightEl.classList.toggle('negative', weight < 0);
+
+                // 更新意式咖啡页面重量显示
+                const espressoWeightEl = document.getElementById('espressoWeight');
+                if (espressoWeightEl) {
+                    espressoWeightEl.textContent = weight.toFixed(1);
+                }
+
+                // 意式咖啡稳定检测
+                if (espressoState === ESPRESSO_STATES.BREWING) {
+                    checkEspressoStable(weight);
+                }
 
                 // 在加粉状态下实时更新UI
                 if (currentState === STATES.ADD_POWDER) {
@@ -2281,6 +2464,221 @@
         document.getElementById('historyDetailModal').addEventListener('click', function(e) {
             if (e.target === this) closeHistoryDetail();
         });
+
+        // ==================== 意式咖啡 ====================
+        function updateEspressoTarget() {
+            const dose = parseFloat(document.getElementById('espressoDoseWeight').value) || 18;
+            const ratio = parseFloat(document.getElementById('espressoRatio').value) || 2;
+            document.getElementById('espressoTargetWeight').textContent = (dose * ratio).toFixed(0);
+        }
+
+        function updateEspressoUI() {
+            const espressoStatusDot = document.getElementById('espressoStatusDot');
+            const espressoDeviceName = document.getElementById('espressoDeviceName');
+            const espressoConnectBtn = document.getElementById('espressoConnectBtn');
+            const espressoTareBtn = document.getElementById('espressoTareBtn');
+            const espressoMainBtn = document.getElementById('espressoMainBtn');
+            const espressoGuideIcon = document.getElementById('espressoGuideIcon');
+            const espressoGuideText = document.getElementById('espressoGuideText');
+            const espressoGuideSub = document.getElementById('espressoGuideSub');
+            const espressoParams = document.getElementById('espressoParams');
+            const espressoTimerSection = document.getElementById('espressoTimerSection');
+            const espressoWeightStatus = document.getElementById('espressoWeightStatus');
+
+            // 同步连接状态
+            if (connected) {
+                espressoStatusDot.classList.add('connected');
+                espressoDeviceName.textContent = device ? device.name : 'TIMEMORE DOT';
+                espressoConnectBtn.textContent = '断开连接';
+                espressoConnectBtn.classList.add('connected');
+            } else {
+                espressoStatusDot.classList.remove('connected');
+                espressoDeviceName.textContent = '未连接';
+                espressoConnectBtn.textContent = '连接电子秤';
+                espressoConnectBtn.classList.remove('connected');
+            }
+
+            switch (espressoState) {
+                case ESPRESSO_STATES.IDLE:
+                    espressoGuideIcon.textContent = '🫖';
+                    espressoGuideText.textContent = '意式浓缩';
+                    espressoGuideSub.textContent = '设置参数后开始';
+                    espressoParams.style.display = 'block';
+                    espressoTimerSection.style.display = 'none';
+                    espressoTareBtn.disabled = !connected;
+                    espressoMainBtn.disabled = !connected;
+                    espressoMainBtn.textContent = '开始萃取';
+                    espressoWeightStatus.innerHTML = '<span>--</span>';
+                    updateEspressoTarget();
+                    break;
+
+                case ESPRESSO_STATES.COUNTDOWN:
+                    espressoGuideIcon.textContent = '⏱️';
+                    espressoGuideText.textContent = `${espressoCountdown}`;
+                    espressoGuideSub.textContent = '';
+                    espressoParams.style.display = 'none';
+                    espressoTimerSection.style.display = 'none';
+                    espressoTareBtn.disabled = true;
+                    espressoMainBtn.disabled = true;
+                    espressoMainBtn.textContent = `${espressoCountdown}...`;
+                    break;
+
+                case ESPRESSO_STATES.BREWING:
+                    espressoGuideIcon.textContent = '💧';
+                    espressoGuideText.textContent = '萃取中';
+                    espressoGuideSub.textContent = `目标: ${(espressoDoseWeight * espressoRatio).toFixed(0)}g`;
+                    espressoParams.style.display = 'none';
+                    espressoTimerSection.style.display = 'block';
+                    espressoTareBtn.disabled = true;
+                    espressoMainBtn.disabled = false;
+                    espressoMainBtn.textContent = '结束萃取';
+                    break;
+
+                case ESPRESSO_STATES.END:
+                    espressoGuideIcon.textContent = '🎉';
+                    espressoGuideText.textContent = '萃取完成！';
+                    espressoGuideSub.textContent = `液重: ${espressoFinalWeight.toFixed(1)}g`;
+                    espressoParams.style.display = 'none';
+                    espressoTimerSection.style.display = 'block';
+                    espressoTareBtn.disabled = true;
+                    espressoMainBtn.disabled = false;
+                    espressoMainBtn.textContent = '返回';
+                    espressoWeightStatus.innerHTML = `<span style="color:#4ade80">萃取完成 ${espressoFinalWeight.toFixed(1)}g</span>`;
+                    break;
+            }
+        }
+
+        let espressoCountdown = 0;
+        let espressoCountdownInterval = null;
+
+        async function handleEspressoAction() {
+            switch (espressoState) {
+                case ESPRESSO_STATES.IDLE:
+                    espressoDoseWeight = parseFloat(document.getElementById('espressoDoseWeight').value) || 18;
+                    espressoRatio = parseFloat(document.getElementById('espressoRatio').value) || 2;
+                    await sendTare();
+                    startEspressoCountdown();
+                    break;
+
+                case ESPRESSO_STATES.BREWING:
+                    endEspresso();
+                    break;
+
+                case ESPRESSO_STATES.END:
+                    resetEspresso();
+                    break;
+            }
+        }
+
+        function startEspressoCountdown() {
+            espressoCountdown = 3;
+            espressoState = ESPRESSO_STATES.COUNTDOWN;
+            updateEspressoUI();
+            speak('3');
+
+            espressoCountdownInterval = setInterval(() => {
+                espressoCountdown--;
+                if (espressoCountdown > 0) {
+                    document.getElementById('espressoGuideText').textContent = `${espressoCountdown}`;
+                    document.getElementById('espressoMainBtn').textContent = `${espressoCountdown}...`;
+                    speak(espressoCountdown.toString());
+                } else {
+                    clearInterval(espressoCountdownInterval);
+                    espressoCountdownInterval = null;
+                    speak('开始');
+                    startEspresso();
+                }
+            }, 1000);
+        }
+
+        function startEspresso() {
+            espressoState = ESPRESSO_STATES.BREWING;
+            espressoStartTime = Date.now();
+            espressoStableWeight = 0;
+            espressoStableTime = 0;
+            espressoFinalWeight = 0;
+
+            updateEspressoUI();
+
+            espressoInterval = setInterval(() => {
+                updateEspressoTimer();
+            }, 100);
+        }
+
+        function updateEspressoTimer() {
+            const elapsed = (Date.now() - espressoStartTime) / 1000;
+            document.getElementById('espressoTimer').textContent = elapsed.toFixed(1);
+        }
+
+        function endEspresso() {
+            if (espressoInterval) {
+                clearInterval(espressoInterval);
+                espressoInterval = null;
+            }
+            espressoFinalWeight = currentWeight;
+            espressoState = ESPRESSO_STATES.END;
+            beep(800, 200);
+            speak('完成');
+            updateEspressoUI();
+
+            // 保存历史
+            saveEspressoHistory();
+        }
+
+        function resetEspresso() {
+            espressoState = ESPRESSO_STATES.IDLE;
+            espressoStableWeight = 0;
+            espressoStableTime = 0;
+            espressoFinalWeight = 0;
+            document.getElementById('espressoWeight').textContent = '0.0';
+            document.getElementById('espressoTimer').textContent = '00.0';
+            updateEspressoUI();
+        }
+
+        function saveEspressoHistory() {
+            const elapsed = (Date.now() - espressoStartTime) / 1000;
+            const record = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                recipe: '意式浓缩',
+                type: 'espresso',
+                coffeeWeight: espressoDoseWeight,
+                maxWeight: espressoFinalWeight,
+                ratio: espressoRatio,
+                duration: elapsed
+            };
+
+            history.unshift(record);
+            if (history.length > 30) history.pop();
+            localStorage.setItem('brewHistory', JSON.stringify(history));
+        }
+
+        // 意式咖啡稳定检测（在 onData 中调用）
+        function checkEspressoStable(weight) {
+            if (espressoState !== ESPRESSO_STATES.BREWING) return;
+
+            const now = Date.now();
+
+            // 检测重量稳定（波动不超过1g）
+            if (Math.abs(weight - espressoStableWeight) <= 1) {
+                if (espressoStableTime === 0) {
+                    espressoStableTime = now;
+                    espressoStableWeight = weight;
+                } else if (now - espressoStableTime >= 5000) {
+                    // 连续5秒稳定，自动结束
+                    log('意式咖啡稳定检测: 5秒稳定，自动结束');
+                    endEspresso();
+                }
+            } else {
+                // 重量变化超过1g，重置计时
+                espressoStableTime = now;
+                espressoStableWeight = weight;
+            }
+        }
+
+        // 监听输入变化
+        document.getElementById('espressoDoseWeight').addEventListener('input', updateEspressoTarget);
+        document.getElementById('espressoRatio').addEventListener('input', updateEspressoTarget);
 
         // 启动
         init();
