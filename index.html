@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>咖啡称助手</title>
     <style>
         * {
@@ -47,8 +47,10 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 12px;
+            padding-top: calc(10px + env(safe-area-inset-top));
             background: #1a1a1a;
             border-bottom: 1px solid #2a2a2a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             flex-shrink: 0;
         }
 
@@ -188,6 +190,28 @@
             color: #666;
         }
 
+        /* 手冲页面紧凑布局 */
+        #brewPage .weight-value {
+            font-size: 42px;
+        }
+
+        #brewPage .weight-unit {
+            font-size: 16px;
+        }
+
+        #brewPage .main {
+            padding-bottom: 0;
+        }
+
+        #brewPage .actions {
+            position: sticky;
+            bottom: 0;
+            background: #0d0d0d;
+            padding: 12px 0;
+            margin-top: auto;
+            z-index: 5;
+        }
+
         /* ============ 称重主页 ============ */
         .scale-main {
             justify-content: center;
@@ -258,8 +282,15 @@
         }
 
         .mode-btn svg {
-            width: 92px;
-            height: 92px;
+            width: 68px;
+            height: 68px;
+        }
+
+        .mode-btn-label {
+            font-size: 12px;
+            margin-top: 2px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
 
         /* ============ 手冲咖啡页 ============ */
@@ -267,6 +298,7 @@
         /* 方案选择区 */
         .recipe-section {
             background: #1a1a1a;
+            border: 1px solid #232323;
             border-radius: 10px;
             padding: 10px;
             margin-bottom: 10px;
@@ -313,8 +345,8 @@
         .guide-section {
             background: linear-gradient(135deg, #1a2a1a 0%, #1a1a1a 100%);
             border: 1px solid #2a3a2a;
-            border-radius: 10px;
-            padding: 10px;
+            border-radius: 12px;
+            padding: 14px 16px;
             margin-bottom: 10px;
             text-align: center;
         }
@@ -345,6 +377,7 @@
         /* ============ 新版冲煮进度条 ============ */
         .brew-progress {
             background: #1a1a1a;
+            border: 1px solid #232323;
             border-radius: 10px;
             padding: 12px;
             margin: 8px 0;
@@ -415,7 +448,7 @@
 
         .progress-labels {
             position: relative;
-            height: 14px;
+            height: 18px;
         }
 
         .progress-label-item {
@@ -440,8 +473,9 @@
         .metrics {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 36px;
             margin: 8px 0;
+            padding: 6px 0;
         }
 
         .metric {
@@ -481,8 +515,9 @@
         /* 曲线图 */
         .chart-container {
             background: #1a1a1a;
+            border: 1px solid #232323;
             border-radius: 10px;
-            padding: 8px;
+            padding: 10px;
             margin: 8px 0;
         }
 
@@ -494,7 +529,7 @@
 
         #chart {
             width: 100%;
-            height: 80px;
+            height: 100px;
             display: block;
         }
 
@@ -507,10 +542,10 @@
 
         .btn {
             flex: 1;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px;
+            border-radius: 12px;
             border: none;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
@@ -539,6 +574,7 @@
             left: 0;
             right: 0;
             padding: 12px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
             background: linear-gradient(to top, #0d0d0d 80%, transparent);
             z-index: 10;
         }
@@ -906,18 +942,19 @@
 
         .completed-panel {
             display: none;
-            background: #161616;
-            border: 1px solid #262626;
+            background: linear-gradient(135deg, #141a14 0%, #161616 100%);
+            border: 1px solid #2a3a2a;
             border-radius: 12px;
-            padding: 14px;
+            padding: 16px;
             margin-top: 10px;
         }
 
         .completed-title {
             color: #4ade80;
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            text-align: center;
         }
 
         .completed-metrics {
@@ -942,7 +979,7 @@
         }
 
         .completed-metric-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: #fff;
         }
@@ -1004,6 +1041,7 @@
                         <path d="M63 59 Q69 58 70 63 Q70 69 63 69" stroke="#8da7ad" stroke-width="1.4"/>
                         <ellipse cx="50" cy="65" rx="11" ry="1.8" fill="#5b3a2c" opacity="0.55"/>
                     </svg>
+                    <span class="mode-btn-label">手冲咖啡</span>
                 </button>
                 <button class="mode-btn" id="espressoModeBtn" onclick="enterEspressoMode()" disabled>
                     <svg viewBox="0 0 96 96" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-label="意式咖啡">
@@ -1024,6 +1062,7 @@
                         <path d="M44 66 Q47 66 47 69" stroke="#7ea0aa" stroke-width="1.2"/>
                         <rect x="20" y="78" width="56" height="7" rx="3" fill="#6f5d3a"/>
                     </svg>
+                    <span class="mode-btn-label">意式咖啡</span>
                 </button>
             </div>
         </div>
@@ -1107,8 +1146,12 @@
 
             <!-- 完成页 -->
             <div class="completed-panel" id="completedPanel">
-                <div class="completed-title">✔ 冲煮完成</div>
+                <div class="completed-title">✅ 冲煮完成</div>
                 <div class="completed-metrics">
+                    <div class="completed-metric">
+                        <div class="completed-metric-label">粉重</div>
+                        <div class="completed-metric-value" id="completedPowder">0g</div>
+                    </div>
                     <div class="completed-metric">
                         <div class="completed-metric-label">总时间</div>
                         <div class="completed-metric-value" id="completedTime">00:00</div>
@@ -1531,7 +1574,7 @@
         function resizeCanvas() {
             const rect = canvas.parentElement.getBoundingClientRect();
             canvas.width = rect.width - 16;
-            canvas.height = 80;
+            canvas.height = 100;
             drawChart();
         }
 
@@ -2355,8 +2398,7 @@
 
                 case STATES.BREWING:
                     if (!stageCompletedFlags.every(Boolean)) {
-                        alert('请完成全部注水阶段后再结束');
-                        return;
+                        if (!confirm('尚未完成全部注水阶段，确定结束吗？')) return;
                     }
                     await finalizeBrewCompletion();
                     break;
@@ -2372,11 +2414,14 @@
 
         function renderCompletedSummary() {
             const durationText = timerEl.textContent || '00:00';
-            const cumulativeTargets = getCumulativeTargets(stageTargets);
+            const completedPowderEl = document.getElementById('completedPowder');
+            if (completedPowderEl) completedPowderEl.textContent = coffeeWeight.toFixed(1) + 'g';
             completedTimeEl.textContent = durationText;
             completedWaterEl.textContent = finalWaterWeight.toFixed(0) + 'g';
-            completedStageList.innerHTML = cumulativeTargets.map((v, i) => {
-                return '<li><span>第' + (i + 1) + '段</span><span>' + v.toFixed(0) + 'g</span></li>';
+            completedStageList.innerHTML = stageTargets.map((target, i) => {
+                const actual = (stageWaterAccum[i] || 0).toFixed(0);
+                const targetText = (target || 0).toFixed(0);
+                return '<li><span>第' + (i + 1) + '段</span><span>' + actual + ' / ' + targetText + 'g</span></li>';
             }).join('');
         }
 
@@ -2433,6 +2478,7 @@
             totalPouredWater = 0;
 
             renderProgressBar();
+            resizeCanvas();
             isRecording = true;
             recordStartTime = Date.now();
             weightData = [];
