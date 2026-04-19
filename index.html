@@ -903,6 +903,69 @@
             font-size: 22px;
             cursor: pointer;
         }
+
+        .completed-panel {
+            display: none;
+            background: #161616;
+            border: 1px solid #262626;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 10px;
+        }
+
+        .completed-title {
+            color: #4ade80;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .completed-metrics {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .completed-metric {
+            flex: 1;
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .completed-metric-label {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .completed-metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .completed-stage-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .completed-stage-list li {
+            display: flex;
+            justify-content: space-between;
+            background: #111;
+            border: 1px solid #232323;
+            border-radius: 8px;
+            padding: 8px 10px;
+            color: #e5e5e5;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -1040,6 +1103,22 @@
             <div class="chart-container" id="chartSection" style="display:none;">
                 <div class="chart-title">注水曲线</div>
                 <canvas id="chart"></canvas>
+            </div>
+
+            <!-- 完成页 -->
+            <div class="completed-panel" id="completedPanel">
+                <div class="completed-title">✔ 冲煮完成</div>
+                <div class="completed-metrics">
+                    <div class="completed-metric">
+                        <div class="completed-metric-label">总时间</div>
+                        <div class="completed-metric-value" id="completedTime">00:00</div>
+                    </div>
+                    <div class="completed-metric">
+                        <div class="completed-metric-label">总水量</div>
+                        <div class="completed-metric-value" id="completedWater">0g</div>
+                    </div>
+                </div>
+                <ul class="completed-stage-list" id="completedStageList"></ul>
             </div>
 
             <!-- 操作按钮 -->
@@ -1251,6 +1330,9 @@
         let stageTargets = []; // 每段动态目标水量
         let stageStopNotified = []; // 每段提前喊停提示
         let recipeConfigured = false;
+        let totalPouredWater = 0;
+        let brewUiFrozen = false;
+        let dataNotificationsPaused = false;
 
         // 方案列表
         let recipes = [];
@@ -1336,6 +1418,16 @@
             return currentRecipe.stages.map(s => totalWater * ((Number(s.weight) || 0) / totalWeight));
         }
 
+        function getCumulativeTargets(targets) {
+            const result = [];
+            let sum = 0;
+            (targets || []).forEach(v => {
+                sum += Number(v) || 0;
+                result.push(sum);
+            });
+            return result;
+        }
+
         // ==================== DOM 元素 ====================
         const brewWeightEl = document.getElementById('brewWeight');
         const scaleWeightEl = document.getElementById('scaleWeight');
@@ -1352,6 +1444,10 @@
         const guideSub = document.getElementById('guideSub');
         const weightStatus = document.getElementById('weightStatus');
         const flowStatus = document.getElementById('flowStatus');
+        const completedPanel = document.getElementById('completedPanel');
+        const completedTimeEl = document.getElementById('completedTime');
+        const completedWaterEl = document.getElementById('completedWater');
+        const completedStageList = document.getElementById('completedStageList');
         const canvas = document.getElementById('chart');
         const ctx = canvas.getContext('2d');
         const historyCanvas = document.getElementById('historyChart');
@@ -1471,28 +1567,71 @@
 
         function selectRecipe(recipe) {
             currentRecipe = normalizeRecipe(recipe);
+
+            // 切换方案时清空旧状态，避免旧阶段缓存污染
+            currentStageIndex = -1;
+            stageCompletedFlags = [];
+            stageWaterAccum = [];
+            stageTargets = [];
+            stageStopNotified = [];
+            recipeConfigured = false;
+            totalPouredWater = 0;
+            brewUiFrozen = false;
+
+            const track = document.getElementById('progressTrack');
+            const labels = document.getElementById('progressLabels');
+            if (track) track.innerHTML = '';
+            if (labels) labels.innerHTML = '';
+
             document.getElementById('recipeName').textContent = currentRecipe.name;
             document.getElementById('recipeRatio').textContent = '\u7C89\u6C34\u6BD4 1:' + parseRatioValue(currentRecipe.ratio);
+            document.getElementById('progressStageLabel').textContent = '\u9636\u6BB5 1/' + currentRecipe.stages.length;
+            document.getElementById('progressTargetLabel').textContent = '0 / 0g';
 
-            const stagesEl = document.getElementById('recipeStages');
-            if (currentState === STATES.ADD_POWDER) {
-                updateAddPowderRecipe(currentWeight);
-            } else {
-                stagesEl.innerHTML = currentRecipe.stages.map((s, i) =>
-                    '<span class="stage-tag" id="stageTag' + i + '">权重 ' + (Number(s.weight) || 0).toFixed(0) + '</span>'
-                ).join('');
+            const powderForPreview = currentState === STATES.ADD_POWDER
+                ? Math.max(0, currentWeight)
+                : Math.max(0, coffeeWeight);
+            updateAddPowderRecipe(powderForPreview);
+
+            if (powderForPreview > 0) {
+                stageTargets = computeStageTargets(powderForPreview);
+                if (currentState === STATES.CONFIGURED || currentState === STATES.COUNTDOWN || currentState === STATES.BREWING || currentState === STATES.END) {
+                    renderProgressBar();
+                    updateProgressBar(Math.max(0, currentWeight));
+                }
             }
 
             renderRecipePageList();
         }
 
         function updateAddPowderRecipe(cw) {
-            if (!currentRecipe || cw <= 0) return;
-            const targets = computeStageTargets(cw);
+            if (!currentRecipe) return;
+            const powder = Math.max(0, Number(cw) || 0);
+            const targets = powder > 0 ? computeStageTargets(powder) : new Array(currentRecipe.stages.length).fill(0);
+            const cumulative = getCumulativeTargets(targets);
+
+            // 预览数据直接与当前方案同步，防止显示旧方案缓存
+            stageTargets = powder > 0 ? targets.slice() : [];
+
             const stagesEl = document.getElementById('recipeStages');
             stagesEl.innerHTML = currentRecipe.stages.map((s, i) => {
-                return '<span class="stage-tag" id="stageTag' + i + '">W' + (Number(s.weight) || 0).toFixed(0) + ' = ' + (targets[i] || 0).toFixed(0) + 'g</span>';
+                return '<span class="stage-tag" id="stageTag' + i + '">第' + (i + 1) + '段：目标至 ' + (cumulative[i] || 0).toFixed(0) + 'g</span>';
             }).join('');
+        }
+
+        async function pauseDataNotifications() {
+            if (!dataChar || dataNotificationsPaused) return;
+            try { await dataChar.stopNotifications(); } catch (e) {}
+            try { dataChar.removeEventListener('characteristicvaluechanged', onData); } catch (e) {}
+            dataNotificationsPaused = true;
+        }
+
+        async function resumeDataNotifications() {
+            if (!dataChar || !dataNotificationsPaused) return;
+            try { await dataChar.startNotifications(); } catch (e) {}
+            try { dataChar.removeEventListener('characteristicvaluechanged', onData); } catch (e) {}
+            dataChar.addEventListener('characteristicvaluechanged', onData);
+            dataNotificationsPaused = false;
         }
 
         function renderRecipePageList() {
@@ -1732,6 +1871,7 @@
         function cleanupConnection() {
             connected = false;
             isConnecting = false;
+            dataNotificationsPaused = false;
             try { if (dataChar) dataChar.removeEventListener('characteristicvaluechanged', onData); } catch(e) {}
             try { if (device) device.removeEventListener('gattserverdisconnected', onDisconnected); } catch(e) {}
             dataChar = null; ctrlChar = null; server = null; device = null;
@@ -1760,6 +1900,8 @@
 
         // ==================== 数据处理 ====================
         function onData(e) {
+            if (brewUiFrozen && currentState === STATES.END) return;
+
             const data = new Uint8Array(e.target.value.buffer);
 
             if (data[0] === 0xA5 && data[1] === 0x5A && data.length >= 10) {
@@ -1804,15 +1946,24 @@
                 if (isRecording) {
                     if (weight > maxRecordedWeight) maxRecordedWeight = weight;
 
+                    // 以真实秤重作为累计注水基准，并保持单调递增，避免慢速注水抖动积分漂移
+                    const brewWaterNow = Math.max(0, weight);
+                    totalPouredWater = Math.max(totalPouredWater, brewWaterNow);
+
                     // 检测滤杯移走：只有所有阶段都完成才能自动结束
                     const allStagesCompleted = stageCompletedFlags.every(f => f === true);
                     
                     if (allStagesCompleted) {
-                        const dropThreshold = Math.max(50, coffeeWeight * 0.3);
-                        if (maxRecordedWeight > dropThreshold && maxRecordedWeight - weight > dropThreshold) {
+                        const plannedTotal = stageTargets.reduce((sum, v) => sum + (Number(v) || 0), 0);
+                        const effectiveTotal = Math.max(plannedTotal, totalPouredWater, maxRecordedWeight, 0);
+                        const dropThreshold = Math.max(6, effectiveTotal * 0.25);
+                        const dropAmount = effectiveTotal - weight;
+                        const cupRemovedShock = weight < -5 && dropAmount > Math.max(10, effectiveTotal * 0.5);
+
+                        if ((dropAmount > dropThreshold && effectiveTotal >= Math.max(10, plannedTotal * 0.8)) || cupRemovedShock) {
                             lowWeightCount++;
                             if (lowWeightCount >= 3) {
-                                finalWaterWeight = maxRecordedWeight;
+                                finalWaterWeight = Math.max(totalPouredWater, maxRecordedWeight, 0);
                                 stopRecord();
                                 stopFlowBeep();
                                 // 修复：截断数据时正确找到下降起始点
@@ -1824,9 +1975,8 @@
                                     }
                                 }
                                 weightData = weightData.slice(0, cutIndex);
-                                saveHistory();
                                 speak('冲煮结束');
-                                setState(STATES.END);
+                                finalizeBrewCompletion();
                                 return;
                             }
                         } else {
@@ -1852,8 +2002,8 @@
                     weightData.push({ time: elapsed, weight, flow: smoothFlow });
                     if (weightData.length > 2400) weightData.shift();
 
-                    checkStageCompletion(weight);
-                    updateProgressBar(weight);
+                    checkStageCompletion(totalPouredWater);
+                    updateProgressBar(totalPouredWater);
                 }
             }
         }
@@ -1948,6 +2098,7 @@
                     document.getElementById('brewProgress').style.display = 'none';
                     document.getElementById('metricsSection').style.display = 'none';
                     document.getElementById('chartSection').style.display = 'none';
+                    completedPanel.style.display = 'none';
                     weightStatus.style.display = 'block';
                     break;
 
@@ -1968,6 +2119,7 @@
                     document.getElementById('brewProgress').style.display = 'none';
                     document.getElementById('metricsSection').style.display = 'none';
                     document.getElementById('chartSection').style.display = 'none';
+                    completedPanel.style.display = 'none';
                     weightStatus.style.display = 'block';
                     break;
 
@@ -1982,6 +2134,7 @@
                     document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'none';
+                    completedPanel.style.display = 'none';
                     weightStatus.style.display = 'none';
                     break;
 
@@ -1996,6 +2149,7 @@
                     document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'none';
+                    completedPanel.style.display = 'none';
                     weightStatus.style.display = 'none';
                     renderProgressBar();
                     break;
@@ -2007,6 +2161,7 @@
                     document.getElementById('brewProgress').style.display = 'block';
                     document.getElementById('metricsSection').style.display = 'flex';
                     document.getElementById('chartSection').style.display = 'block';
+                    completedPanel.style.display = 'none';
                     weightStatus.style.display = 'none';
                     break;
 
@@ -2017,11 +2172,14 @@
                     brewWeightEl.textContent = finalWaterWeight.toFixed(1);
                     mainBtn.disabled = false;
                     mainBtn.textContent = '返回称重';
-                    tareBtn.style.display = 'none';
+                    tareBtn.style.display = '';
+                    tareBtn.textContent = '再来一杯';
+                    tareBtn.disabled = false;
                     document.getElementById('recipeSection').style.display = 'block';
-                    document.getElementById('brewProgress').style.display = 'block';
-                    document.getElementById('metricsSection').style.display = 'flex';
-                    document.getElementById('chartSection').style.display = 'block';
+                    document.getElementById('brewProgress').style.display = 'none';
+                    document.getElementById('metricsSection').style.display = 'none';
+                    document.getElementById('chartSection').style.display = 'none';
+                    completedPanel.style.display = 'block';
                     weightStatus.style.display = 'block';
                     weightStatus.innerHTML = '<span style="color:#4ade80">\u603B\u6CE8\u6C34\u91CF ' + finalWaterWeight.toFixed(0) + 'g</span>';
                     break;
@@ -2030,7 +2188,8 @@
 
         function updateBrewingUI() {
             const stage = currentRecipe.stages[currentStageIndex];
-            const targetWater = stageTargets[currentStageIndex] || 0;
+            const cumulativeTargets = getCumulativeTargets(stageTargets);
+            const targetWater = cumulativeTargets[currentStageIndex] || 0;
 
             if (stageCompletedFlags[currentStageIndex]) {
                 guideIcon.textContent = '⏳';
@@ -2057,29 +2216,33 @@
         function renderProgressBar() {
             if (!currentRecipe || !stageTargets.length) return;
 
-            const stages = currentRecipe.stages;
-            const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
+            const totalWater = stageTargets.reduce((sum, v) => sum + (Number(v) || 0), 0) || 1;
+            const cumulativeTargets = getCumulativeTargets(stageTargets);
             const track = document.getElementById('progressTrack');
             const labels = document.getElementById('progressLabels');
 
-            // 构建单一连续进度条，分段标记基于权重
+            // 构建累计进度轴（0 -> totalWater）
             let trackHTML = '<div class="progress-bar-fill active" id="progressBarFill" style="width:0%"></div>';
             let labelsHTML = '';
-            let cumulativeWeight = 0;
 
-            stages.forEach((s, i) => {
-                const offset = (cumulativeWeight / totalWeight) * 100;
-                if (i > 0) {
+            cumulativeTargets.forEach((target, i) => {
+                const offset = Math.max(0, Math.min(100, (target / totalWater) * 100));
+                if (i < cumulativeTargets.length - 1) {
                     trackHTML += '<div class="progress-marker" style="left:' + offset + '%"></div>';
                 }
                 labelsHTML += '<div class="progress-label-item" id="pLabel' + i + '" style="left:' + offset + '%">' +
-                    (stageTargets[i] || 0).toFixed(0) + 'g</div>';
-                cumulativeWeight += s.weight;
+                    target.toFixed(0) + 'g</div>';
             });
-            labelsHTML += '<div class="progress-label-item" style="left:100%">' + (stageTargets[stageTargets.length - 1] || 0).toFixed(0) + 'g</div>';
 
             track.innerHTML = trackHTML;
             labels.innerHTML = labelsHTML;
+
+            if (currentStageIndex < 0) {
+                const stageLabel = document.getElementById('progressStageLabel');
+                const targetLabel = document.getElementById('progressTargetLabel');
+                stageLabel.textContent = '\u9636\u6BB5 1/' + currentRecipe.stages.length;
+                targetLabel.textContent = '0 / ' + (cumulativeTargets[0] || 0).toFixed(0) + 'g';
+            }
 
             updateProgressInfo();
         }
@@ -2089,43 +2252,24 @@
             const stages = currentRecipe.stages;
             const label = document.getElementById('progressStageLabel');
             const target = document.getElementById('progressTargetLabel');
-            const currentTarget = stageTargets[currentStageIndex] || 0;
-            const currentAccum = stageWaterAccum[currentStageIndex] || 0;
+            const cumulativeTargets = getCumulativeTargets(stageTargets);
+            const currentTarget = cumulativeTargets[currentStageIndex] || 0;
+            const currentAccum = Math.max(0, Number(totalPouredWater) || 0);
 
-            if (stageCompletedFlags[currentStageIndex]) {
-                label.textContent = '✓ \u9636\u6BB5 ' + (currentStageIndex + 1) + '/' + stages.length;
-                target.textContent = '已完成';
-            } else {
-                label.textContent = '\u9636\u6BB5 ' + (currentStageIndex + 1) + '/' + stages.length;
-                target.textContent = currentAccum.toFixed(0) + ' / ' + currentTarget.toFixed(0) + 'g';
-            }
+            label.textContent = '\u9636\u6BB5 ' + (currentStageIndex + 1) + '/' + stages.length;
+            target.textContent = currentAccum.toFixed(0) + ' / ' + currentTarget.toFixed(0) + 'g';
         }
 
         function updateProgressBar(weight) {
             if (currentStageIndex < 0 || !currentRecipe) return;
 
-            const stages = currentRecipe.stages;
-            const totalWeight = stages.reduce((sum, s) => sum + s.weight, 0);
-
-            // 计算累计进度（基于当前权重内的实际水量
-            let completedWeight = 0;
-            for (let i = 0; i <= currentStageIndex && i < stages.length; i++) {
-                if (i < currentStageIndex) {
-                    completedWeight += stages[i].weight;
-                } else if (i === currentStageIndex) {
-                    const targetWater = stageTargets[i] || 0;
-                    const currentWater = Math.max(0, Math.min(stageWaterAccum[i] || 0, targetWater));
-                    const ratio = targetWater > 0 ? (currentWater / targetWater) : 0;
-                    completedWeight += ratio * stages[i].weight;
-                }
-            }
-
-            const overallProgress = (completedWeight / totalWeight) * 100;
+            const totalWater = stageTargets.reduce((sum, v) => sum + (Number(v) || 0), 0) || 1;
+            const overallProgress = (Math.max(0, Number(weight) || 0) / totalWater) * 100;
             const fill = document.getElementById('progressBarFill');
             if (fill) fill.style.width = Math.min(100, overallProgress) + '%';
 
             // 更新标签样式
-            stages.forEach((s, i) => {
+            currentRecipe.stages.forEach((s, i) => {
                 const labelEl = document.getElementById('pLabel' + i);
                 if (!labelEl) return;
                 if (i < currentStageIndex || stageCompletedFlags[i]) {
@@ -2151,8 +2295,10 @@
             const safeWater = Math.max(0, currentStageWater);
             stageWaterAccum[currentStageIndex] = Math.min(safeWater, stageTarget);
 
-            const stopAt = Math.max(0, stageTarget - (stage.stopEarly || 0));
-            if (!stageStopNotified[currentStageIndex] && safeWater >= stopAt && stopAt > 0) {
+            // 限制提前提示窗口，避免在慢速注水下过早“喊停”导致用户误停
+            const stopWindow = Math.max(0, Math.min(Number(stage.stopEarly) || 0, 1));
+            const stopAt = Math.max(0, stageTarget - stopWindow);
+            if (!stageStopNotified[currentStageIndex] && safeWater >= stopAt && safeWater < stageTarget) {
                 stageStopNotified[currentStageIndex] = true;
                 beep(800, 150);
                 speak('停');
@@ -2212,19 +2358,37 @@
                         alert('请完成全部注水阶段后再结束');
                         return;
                     }
-                    finalWaterWeight = currentWeight;
-                    stopRecord();
-                    stopFlowBeep();
-                    saveHistory();
-                    setState(STATES.END);
+                    await finalizeBrewCompletion();
                     break;
 
                 case STATES.END:
                     resetBrew();
+                    await resumeDataNotifications();
                     setState(STATES.WEIGHING);
                     switchToPage('scale');
                     break;
             }
+        }
+
+        function renderCompletedSummary() {
+            const durationText = timerEl.textContent || '00:00';
+            const cumulativeTargets = getCumulativeTargets(stageTargets);
+            completedTimeEl.textContent = durationText;
+            completedWaterEl.textContent = finalWaterWeight.toFixed(0) + 'g';
+            completedStageList.innerHTML = cumulativeTargets.map((v, i) => {
+                return '<li><span>第' + (i + 1) + '段</span><span>' + v.toFixed(0) + 'g</span></li>';
+            }).join('');
+        }
+
+        async function finalizeBrewCompletion() {
+            finalWaterWeight = Math.max(finalWaterWeight, totalPouredWater, maxRecordedWeight, 0);
+            stopRecord();
+            stopFlowBeep();
+            renderCompletedSummary();
+            brewUiFrozen = true;
+            await pauseDataNotifications();
+            saveHistory();
+            setState(STATES.END);
         }
 
         function startCountdown() {
@@ -2262,9 +2426,11 @@
             stageWaterAccum = new Array(currentRecipe.stages.length).fill(0);
             stageStopNotified = new Array(currentRecipe.stages.length).fill(false);
             recipeConfigured = true;
+            brewUiFrozen = false;
             maxRecordedWeight = 0;
             lowWeightCount = 0;
             currentWeight = 0;
+            totalPouredWater = 0;
 
             renderProgressBar();
             isRecording = true;
@@ -2302,12 +2468,18 @@
             stageTargets = [];
             stageStopNotified = [];
             recipeConfigured = false;
+            totalPouredWater = 0;
+            brewUiFrozen = false;
             coffeeWeight = 0;
             timerEl.textContent = '00:00';
             flowEl.textContent = '0.0';
             flowStatus.textContent = '';
             flowStatus.className = 'flow-status';
             weightStatus.innerHTML = '<span>--</span>';
+            completedPanel.style.display = 'none';
+            completedTimeEl.textContent = '00:00';
+            completedWaterEl.textContent = '0g';
+            completedStageList.innerHTML = '';
             lastFlowStatus = null;
             currentBeepType = null;
             drawChart();
@@ -2322,11 +2494,18 @@
             }
         }
 
-        function handleTareAction() {
+        async function handleTareAction() {
             if (currentState === STATES.ADD_POWDER) {
                 resetBrew();
                 setState(STATES.WEIGHING);
                 switchToPage('scale');
+                return;
+            }
+
+            if (currentState === STATES.END) {
+                resetBrew();
+                await resumeDataNotifications();
+                enterBrewMode();
             }
         }
 
